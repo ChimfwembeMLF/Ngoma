@@ -7,6 +7,9 @@ import { TrackPage } from './pages/TrackPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ArtistDashboardPage } from './pages/ArtistDashboardPage';
 import { ArtistProfilePage } from './pages/ArtistProfilePage';
+import { TipArtistPage } from './pages/TipArtistPage';
+import { PlaylistsPage } from './pages/PlaylistsPage';
+import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { PurchaseHistoryPage } from './pages/PurchaseHistoryPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
@@ -23,6 +26,16 @@ export default function App() {
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/tracks/:id" element={<TrackPage />} />
+          <Route path="/playlists/share/:slug" element={<PlaylistDetailPage />} />
+          <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+          <Route
+            path="/playlists"
+            element={
+              <ProtectedRoute>
+                <PlaylistsPage />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/dashboard"
             element={
@@ -44,6 +57,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ArtistProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/tip/:artistId"
+            element={
+              <ProtectedRoute>
+                <TipArtistPage />
               </ProtectedRoute>
             }
           />

@@ -18,6 +18,7 @@ export enum PaymentStatus {
 
 export enum PaymentPurpose {
   TRACK_DOWNLOAD = 'TRACK_DOWNLOAD',
+  TIP = 'TIP',
 }
 
 @Entity({ name: 'payments' })

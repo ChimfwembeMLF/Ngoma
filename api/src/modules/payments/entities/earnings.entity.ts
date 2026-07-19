@@ -13,6 +13,7 @@ import { Payment } from './payment.entity';
 
 export enum EarningsSource {
   DOWNLOAD = 'DOWNLOAD',
+  TIP = 'TIP',
 }
 
 @Entity({ name: 'earnings' })
@@ -26,8 +27,8 @@ export class Earnings {
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 
-  @Column({ name: 'track_id', type: 'uuid' })
-  trackId: string;
+  @Column({ name: 'track_id', type: 'uuid', nullable: true })
+  trackId?: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   amount: string;

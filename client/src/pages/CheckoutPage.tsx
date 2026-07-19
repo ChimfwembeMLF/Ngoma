@@ -1,31 +1,36 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useTrack } from '../hooks/useTracks';
-import { useInitiatePayment, usePaymentOptions } from '../hooks/usePayments';
-import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
-import { PaymentStatusPanel } from '../components/payments/PaymentStatusPanel';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Button, buttonVariants } from '../components/ui/Button';
-import { cn } from '../lib/utils';
-
-const selectClassName = cn(
-  'w-full min-h-[56px] rounded-sm border border-hairline bg-canvas px-3 py-2 text-base text-ink',
-  'focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20',
-);
+import { useTrack } from '@/hooks/useTracks';
+import { useInitiatePayment, usePaymentConfig, usePaymentOptions } from '@/hooks/usePayments';
+import { AppShell } from '@/components/layout/AppShell';
+import { PaymentStatusPanel } from '@/components/payments/PaymentStatusPanel';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export function CheckoutPage() {
   const { trackId = '' } = useParams();
   const { data } = useTrack(trackId);
   const track = data?.data;
+  const paymentConfig = usePaymentConfig();
   const options = usePaymentOptions();
   const initiate = useInitiatePayment();
   const [provider, setProvider] = useState('');
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
   const [depositId, setDepositId] = useState<string | null>(null);
+  const [paymentComplete, setPaymentComplete] = useState(false);
   const [error, setError] = useState('');
 
+  const pawapayEnabled = paymentConfig.data?.data.pawapayEnabled ?? true;
   const isPwyw = track?.pricingType === 'PAY_WHAT_YOU_WANT';
   const minAmount = isPwyw ? (track?.minPrice ?? 0) : Number(track?.price ?? 0);
 
@@ -41,8 +46,18 @@ export function CheckoutPage() {
   const zambia = options.data?.data?.[0];
   const providers = zambia?.providers ?? [];
 
+  const resetPayment = () => {
+    setDepositId(null);
+    setPaymentComplete(false);
+    setError('');
+  };
+
   const pay = async () => {
     if (!track || !provider) return;
+    if (pawapayEnabled && !phone.trim()) {
+      setError('Phone number is required for mobile money payment');
+      return;
+    }
     const payAmount = Number(amount);
     if (isPwyw && payAmount < minAmount) {
       setError(`Amount must be at least ZMW ${minAmount.toFixed(2)}`);
@@ -66,9 +81,9 @@ export function CheckoutPage() {
 
   if (!track) {
     return (
-      <DesignSystemLayout maxWidth="md" centered>
-        <p className="text-sm text-muted">Loading…</p>
-      </DesignSystemLayout>
+      <AppShell maxWidth="md" centered>
+        <p className="text-sm text-muted-foreground">Loading…</p>
+      </AppShell>
     );
   }
 
@@ -77,60 +92,67 @@ export function CheckoutPage() {
     : `ZMW ${track.price}`;
 
   return (
-    <DesignSystemLayout maxWidth="md">
+    <AppShell maxWidth="md">
       <div className="space-y-6">
-        <Link to={`/tracks/${track.id}`} className={buttonVariants('ghost', 'text-sm')}>
+        <Link
+          to={`/tracks/${track.id}`}
+          className={buttonVariants({ variant: 'ghost', className: 'text-sm' })}
+        >
           ← Back to track
         </Link>
 
-        <h1 className="text-[22px] font-medium text-ink">Checkout</h1>
+        <h1 className="text-[22px] font-medium text-foreground">Checkout</h1>
 
-        <Card>
-          <div className="font-semibold text-ink">{track.title}</div>
-          <div className="text-sm text-muted">{priceSummary}</div>
+        <Card className="p-6">
+          <div className="font-semibold text-foreground">{track.title}</div>
+          <div className="text-sm text-muted-foreground">{priceSummary}</div>
         </Card>
 
-        {error && <p className="text-sm text-error">{error}</p>}
+        {error && <p className="text-sm text-destructive">{error}</p>}
 
         {!depositId ? (
           <div className="space-y-4">
             {isPwyw && (
-              <Input
-                label="Your amount (ZMW)"
-                type="number"
-                min={String(minAmount)}
-                step="0.01"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-              />
+              <div className="space-y-2">
+                <Label htmlFor="amount">Your amount (ZMW)</Label>
+                <Input
+                  id="amount"
+                  type="number"
+                  min={String(minAmount)}
+                  step="0.01"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </div>
             )}
-            <div className="space-y-1">
-              <label htmlFor="provider" className="block text-sm font-medium text-ink">
-                Mobile money provider
-              </label>
-              <select
-                id="provider"
-                className={selectClassName}
-                value={provider}
-                onChange={(e) => setProvider(e.target.value)}
-              >
-                <option value="">Select provider</option>
-                {providers.map((p) => (
-                  <option key={p.code} value={p.code}>
-                    {p.label}
-                  </option>
-                ))}
-              </select>
+            <div className="space-y-2">
+              <Label htmlFor="provider">Mobile money provider</Label>
+              <Select value={provider} onValueChange={setProvider}>
+                <SelectTrigger id="provider" className="w-full">
+                  <SelectValue placeholder="Select provider" />
+                </SelectTrigger>
+                <SelectContent>
+                  {providers.map((p) => (
+                    <SelectItem key={p.code} value={p.code}>
+                      {p.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-            <Input
-              label="Phone number"
-              placeholder="e.g. 0977123456"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone number{pawapayEnabled ? ' *' : ''}</Label>
+              <Input
+                id="phone"
+                placeholder="e.g. 0977123456"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                required={pawapayEnabled}
+              />
+            </div>
             <Button
               type="button"
-              variant="primary"
+              variant="default"
               className="w-full"
               onClick={pay}
               disabled={!provider || initiate.isPending}
@@ -139,9 +161,24 @@ export function CheckoutPage() {
             </Button>
           </div>
         ) : (
-          <PaymentStatusPanel depositId={depositId} onComplete={() => {}} />
+          <div className="space-y-4">
+            <PaymentStatusPanel
+              depositId={depositId}
+              onComplete={() => setPaymentComplete(true)}
+              onRetry={resetPayment}
+              completedMessage="Payment completed! You can now download your track."
+            />
+            {paymentComplete && (
+              <Link
+                to={`/tracks/${track.id}`}
+                className={buttonVariants({ variant: 'default', className: 'inline-flex w-full justify-center' })}
+              >
+                Go to track & download
+              </Link>
+            )}
+          </div>
         )}
       </div>
-    </DesignSystemLayout>
+    </AppShell>
   );
 }

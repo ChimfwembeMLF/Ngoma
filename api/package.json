@@ -19,6 +19,7 @@
     "migrations:revert": "NODE_ENV=development typeorm-ts-node-commonjs migration:revert -d database/data-source.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1090.0",
     "@nestjs/common": "^11.1.13",
     "@nestjs/config": "^4.0.3",
     "@nestjs/core": "^11.1.13",

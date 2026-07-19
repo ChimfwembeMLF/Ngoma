@@ -1,32 +1,20 @@
-import { cn } from '../../lib/utils';
+import * as React from "react"
+import { Input as InputPrimitive } from "@base-ui/react/input"
 
-type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
-  label?: string;
-  error?: string;
-};
+import { cn } from "@/lib/utils"
 
-export function Input({ label, error, className, id, ...props }: InputProps) {
-  const inputId = id ?? label?.toLowerCase().replace(/\s+/g, '-');
-
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   return (
-    <div className="space-y-1">
-      {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-ink">
-          {label}
-        </label>
+    <InputPrimitive
+      type={type}
+      data-slot="input"
+      className={cn(
+        "h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2.5 py-1 text-base transition-colors outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:pointer-events-none disabled:cursor-not-allowed disabled:bg-input/50 disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:bg-input/30 dark:disabled:bg-input/80 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40",
+        className
       )}
-      <input
-        id={inputId}
-        className={cn(
-          'w-full min-h-[56px] rounded-sm border bg-canvas px-3 py-2 text-base text-ink',
-          'placeholder:text-muted-soft',
-          'focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20',
-          error ? 'border-error' : 'border-hairline',
-          className,
-        )}
-        {...props}
-      />
-      {error && <p className="text-sm text-error">{error}</p>}
-    </div>
-  );
+      {...props}
+    />
+  )
 }
+
+export { Input }

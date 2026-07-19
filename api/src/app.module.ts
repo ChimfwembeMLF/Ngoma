@@ -19,6 +19,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { PlaylistsModule } from './modules/playlists/playlists.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { AnalyticsModule } from './modules/analytics/analytics.module';
     DiscoveryModule,
     AdminModule,
     AnalyticsModule,
+    PlaylistsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AppThrottlerGuard },

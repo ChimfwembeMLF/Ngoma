@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Howl } from 'howler';
-import { Button } from '../ui/Button';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 
 type Props = {
   src: string;
@@ -50,18 +51,18 @@ export function AudioPlayer({ src, title, artistName }: Props) {
   };
 
   return (
-    <div className="rounded-md border border-hairline bg-canvas p-4 shadow-sm">
-      {artistName && <div className="text-sm text-muted">{artistName}</div>}
-      <div className="mb-3 font-semibold text-ink">{title}</div>
-      <div className="mb-3 h-1.5 rounded-full bg-surface-soft">
+    <Card className="p-4 shadow-sm">
+      {artistName && <div className="text-sm text-muted-foreground">{artistName}</div>}
+      <div className="mb-3 font-semibold text-foreground">{title}</div>
+      <div className="mb-3 h-1.5 rounded-full bg-muted">
         <div
           className="h-1.5 rounded-full bg-primary transition-all"
           style={{ width: `${progress}%` }}
         />
       </div>
-      <Button type="button" onClick={toggle} variant="primary">
+      <Button type="button" onClick={toggle} variant="default">
         {playing ? 'Pause' : 'Play'}
       </Button>
-    </div>
+    </Card>
   );
 }

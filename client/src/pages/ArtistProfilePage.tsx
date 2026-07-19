@@ -1,17 +1,12 @@
 import { useState } from 'react';
-import { useUpdateArtistProfile } from '../hooks/usePayments';
-import { useAuth } from '../hooks/useAuth';
-import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { cn } from '../lib/utils';
-
-const textareaClassName = cn(
-  'w-full min-h-[120px] rounded-sm border border-hairline bg-canvas px-3 py-2 text-base text-ink',
-  'placeholder:text-muted-soft',
-  'focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20',
-);
+import { useUpdateArtistProfile } from '@/hooks/usePayments';
+import { useAuth } from '@/hooks/useAuth';
+import { AppShell } from '@/components/layout/AppShell';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 
 export function ArtistProfilePage() {
   const { meQuery } = useAuth();
@@ -31,40 +26,43 @@ export function ArtistProfilePage() {
   };
 
   return (
-    <DesignSystemLayout maxWidth="2xl">
-      <h1 className="mb-6 text-[22px] font-medium text-ink">Artist profile</h1>
+    <AppShell maxWidth="2xl">
+      <h1 className="mb-6 text-[22px] font-medium text-foreground">Artist profile</h1>
 
-      <Card className="space-y-4">
-        {message && <p className="text-sm text-muted">{message}</p>}
-        <Input
-          label="Artist name"
-          placeholder="Artist name"
-          value={artistName}
-          onChange={(e) => setArtistName(e.target.value)}
-        />
-        <div className="space-y-1">
-          <label htmlFor="bio" className="block text-sm font-medium text-ink">
-            Bio
-          </label>
-          <textarea
+      <Card className="space-y-4 p-6">
+        {message && <p className="text-sm text-muted-foreground">{message}</p>}
+        <div className="space-y-2">
+          <Label htmlFor="artistName">Artist name</Label>
+          <Input
+            id="artistName"
+            placeholder="Artist name"
+            value={artistName}
+            onChange={(e) => setArtistName(e.target.value)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bio">Bio</Label>
+          <Textarea
             id="bio"
-            className={textareaClassName}
             placeholder="Bio"
             rows={4}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
           />
         </div>
-        <Input
-          label="Genres"
-          placeholder="Genres (comma separated)"
-          value={genres}
-          onChange={(e) => setGenres(e.target.value)}
-        />
-        <Button type="button" variant="primary" onClick={save} disabled={update.isPending}>
+        <div className="space-y-2">
+          <Label htmlFor="genres">Genres</Label>
+          <Input
+            id="genres"
+            placeholder="Genres (comma separated)"
+            value={genres}
+            onChange={(e) => setGenres(e.target.value)}
+          />
+        </div>
+        <Button type="button" variant="default" onClick={save} disabled={update.isPending}>
           Save profile
         </Button>
       </Card>
-    </DesignSystemLayout>
+    </AppShell>
   );
 }

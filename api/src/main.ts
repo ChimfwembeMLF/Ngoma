@@ -2,12 +2,15 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
+import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { setupSwagger } from './setup-swagger';
+import { isS3Configured } from './common/storage.config';
 import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const config = app.get(ConfigService);
 
   app.use(helmet({ contentSecurityPolicy: false }));
   app.enableCors({
@@ -15,7 +18,9 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
+  if (!isS3Configured(config)) {
+    app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads/' });
+  }
 
   app.useGlobalPipes(
     new ValidationPipe({

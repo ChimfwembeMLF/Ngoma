@@ -14,7 +14,7 @@
 
 **Purpose**: `tips` table and enum constraint extensions
 
-- [ ] T001 Create migration `api/database/migrations/1719000000007-ArtistTipping.ts` with `tips` table, `idx_tips_artist_created`, nullable `earnings.track_id`, and CHECK updates for `TIP` on `payments.purpose` and `earnings.source` per data-model.md
+- [X] T001 Create migration `api/database/migrations/1719000000007-ArtistTipping.ts` with `tips` table, `idx_tips_artist_created`, nullable `earnings.track_id`, and CHECK updates for `TIP` on `payments.purpose` and `earnings.source` per data-model.md
 
 ---
 
@@ -22,11 +22,11 @@
 
 **Purpose**: Payment/tip data model — blocks all user stories
 
-- [ ] T002 Create `api/src/modules/payments/entities/tip.entity.ts` with artistId, userId, amount, paymentId, message, trackId, isAnonymous, createdAt per data-model.md
-- [ ] T003 [P] Add `TIP` to `PaymentPurpose` enum in `api/src/modules/payments/entities/payment.entity.ts`
-- [ ] T004 [P] Add `TIP` to `EarningsSource` enum and make `trackId` nullable in `api/src/modules/payments/entities/earnings.entity.ts`
-- [ ] T005 [P] Create `api/src/modules/payments/dto/initiate-tip.dto.ts` with artistId, amount (≥1), provider, phone, optional message (max 500), optional trackId per `contracts/tips-api.md`
-- [ ] T006 Register `Tip` entity and `TipsController` in `api/src/modules/payments/payments.module.ts`
+- [X] T002 Create `api/src/modules/payments/entities/tip.entity.ts` with artistId, userId, amount, paymentId, message, trackId, isAnonymous, createdAt per data-model.md
+- [X] T003 [P] Add `TIP` to `PaymentPurpose` enum in `api/src/modules/payments/entities/payment.entity.ts`
+- [X] T004 [P] Add `TIP` to `EarningsSource` enum and make `trackId` nullable in `api/src/modules/payments/entities/earnings.entity.ts`
+- [X] T005 [P] Create `api/src/modules/payments/dto/initiate-tip.dto.ts` with artistId, amount (≥1), provider, phone, optional message (max 500), optional trackId per `contracts/tips-api.md`
+- [X] T006 Register `Tip` entity and `TipsController` in `api/src/modules/payments/payments.module.ts`
 
 **Checkpoint**: Entities load; no tip routes wired yet
 
@@ -38,12 +38,12 @@
 
 **Independent Test**: VS-701 — Listener tips ZMW 10 → payment COMPLETED, tip + earnings rows created
 
-- [ ] T007 [US1] Implement `initiateTip(userId, dto)` in `api/src/modules/payments/payments.service.ts` mirroring deposit flow with `purpose: TIP`, `itemId: artistId`, self-tip forbidden (403), min amount ZMW 1 per research.md R5
-- [ ] T008 [US1] Extend `completePayment()` in `api/src/modules/payments/payments.service.ts` for `TIP`: create `tips` row, create `earnings` with `source: TIP`, `TIP_PLATFORM_FEE_RATE = 0.05` (95% artist share) per research.md R3
-- [ ] T009 [US1] Add `POST /api/v1/payments/tip` to `api/src/modules/payments/payments.controller.ts` with `JwtAuthGuard` and Swagger docs per `contracts/tips-api.md`
-- [ ] T010 [P] [US1] Create `client/src/hooks/useTips.ts` with `useInitiateTip()` calling `/api/v1/payments/tip`
-- [ ] T011 [US1] Create `client/src/pages/TipArtistPage.tsx` with preset chips (5/10/25/50), custom amount, provider, phone, and `PaymentStatusPanel` per `contracts/tip-ui.md`
-- [ ] T012 [US1] Register route `/tip/:artistId` in `client/src/App.tsx` loading `TipArtistPage`
+- [X] T007 [US1] Implement `initiateTip(userId, dto)` in `api/src/modules/payments/payments.service.ts` mirroring deposit flow with `purpose: TIP`, `itemId: artistId`, self-tip forbidden (403), min amount ZMW 1 per research.md R5
+- [X] T008 [US1] Extend `completePayment()` in `api/src/modules/payments/payments.service.ts` for `TIP`: create `tips` row, create `earnings` with `source: TIP`, `TIP_PLATFORM_FEE_RATE = 0.05` (95% artist share) per research.md R3
+- [X] T009 [US1] Add `POST /api/v1/payments/tip` to `api/src/modules/payments/payments.controller.ts` with `JwtAuthGuard` and Swagger docs per `contracts/tips-api.md`
+- [X] T010 [P] [US1] Create `client/src/hooks/useTips.ts` with `useInitiateTip()` calling `/api/v1/payments/tip`
+- [X] T011 [US1] Create `client/src/pages/TipArtistPage.tsx` with preset chips (5/10/25/50), custom amount, provider, phone, and `PaymentStatusPanel` per `contracts/tip-ui.md`
+- [X] T012 [US1] Register route `/tip/:artistId` in `client/src/App.tsx` loading `TipArtistPage`
 
 ---
 
@@ -53,9 +53,9 @@
 
 **Independent Test**: VS-701 UI — "Tip artist" from `/tracks/:id` opens tip page for correct artist; completed tip stores optional `trackId`
 
-- [ ] T013 [US2] Validate optional `trackId` belongs to target artist in `initiateTip()` in `api/src/modules/payments/payments.service.ts`
-- [ ] T014 [US2] Add "Tip artist" link on `client/src/pages/TrackPage.tsx` to `/tip/{artistId}?trackId={trackId}` when logged in per `contracts/tip-ui.md`
-- [ ] T015 [US2] Read `trackId` search param in `client/src/pages/TipArtistPage.tsx` and pass to `useInitiateTip()` mutation
+- [X] T013 [US2] Validate optional `trackId` belongs to target artist in `initiateTip()` in `api/src/modules/payments/payments.service.ts`
+- [X] T014 [US2] Add "Tip artist" link on `client/src/pages/TrackPage.tsx` to `/tip/{artistId}?trackId={trackId}` when logged in per `contracts/tip-ui.md`
+- [X] T015 [US2] Read `trackId` search param in `client/src/pages/TipArtistPage.tsx` and pass to `useInitiateTip()` mutation
 
 ---
 
@@ -65,7 +65,7 @@
 
 **Independent Test**: VS-703 — After tip, artist dashboard net earnings and unique supporters update
 
-- [ ] T016 [US3] Verify `api/src/modules/analytics/analytics.service.ts` summary queries include TIP earnings via existing `SUM(earnings.amount)` — document PASS or fix if filtered by source
+- [X] T016 [US3] Verify `api/src/modules/analytics/analytics.service.ts` summary queries include TIP earnings via existing `SUM(earnings.amount)` — document PASS or fix if filtered by source
 
 ---
 
@@ -75,18 +75,18 @@
 
 **Independent Test**: VS-702 / VS-704 — Tip with message appears in `GET /api/v1/tips/received`
 
-- [ ] T017 [US4] Create `api/src/modules/payments/tips.controller.ts` with `GET /api/v1/tips/received`, `JwtAuthGuard`, `RolesGuard`, `@Roles(ARTIST)`, paginated tip list with tipper name per `contracts/tips-api.md`
-- [ ] T018 [US4] Add optional message textarea to `client/src/pages/TipArtistPage.tsx` (max 500 chars) per `contracts/tip-ui.md`
-- [ ] T019 [US4] Add `useTipsReceived()` to `client/src/hooks/useTips.ts` and optional "Recent tips" section on `client/src/pages/ArtistDashboardPage.tsx`
+- [X] T017 [US4] Create `api/src/modules/payments/tips.controller.ts` with `GET /api/v1/tips/received`, `JwtAuthGuard`, `RolesGuard`, `@Roles(ARTIST)`, paginated tip list with tipper name per `contracts/tips-api.md`
+- [X] T018 [US4] Add optional message textarea to `client/src/pages/TipArtistPage.tsx` (max 500 chars) per `contracts/tip-ui.md`
+- [X] T019 [US4] Add `useTipsReceived()` to `client/src/hooks/useTips.ts` and optional "Recent tips" section on `client/src/pages/ArtistDashboardPage.tsx`
 
 ---
 
 ## Phase 7: Polish & Cross-Cutting
 
-- [ ] T020 Run migration 007 via `yarn workspace @ngoma/api migrations:run` and confirm `tips` table exists
-- [ ] T021 Run `yarn workspace @ngoma/api lint` and `yarn workspace @ngoma/api build`; run `yarn workspace @ngoma/client lint` and `yarn workspace @ngoma/client build`
-- [ ] T022 Document VS-701–VS-705 validation results in `specs/007-artist-tipping/quickstart.md`
-- [ ] T023 Regression-check SET_PRICE and PWYW checkout on `client/src/pages/CheckoutPage.tsx` (SC-703)
+- [X] T020 Run migration 007 via `yarn workspace @ngoma/api migrations:run` and confirm `tips` table exists
+- [X] T021 Run `yarn workspace @ngoma/api lint` and `yarn workspace @ngoma/api build`; run `yarn workspace @ngoma/client lint` and `yarn workspace @ngoma/client build`
+- [X] T022 Document VS-701–VS-705 validation results in `specs/007-artist-tipping/quickstart.md`
+- [X] T023 Regression-check SET_PRICE and PWYW checkout on `client/src/pages/CheckoutPage.tsx` (SC-703)
 
 ---
 

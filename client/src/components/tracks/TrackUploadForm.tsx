@@ -4,10 +4,11 @@ import {
   useUploadTrackFiles,
   useUpdateTrack,
   type PricingType,
-} from '../../hooks/useTracks';
-import { Card } from '../ui/Card';
-import { Input } from '../ui/Input';
-import { Button } from '../ui/Button';
+} from '@/hooks/useTracks';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 const PRICING_OPTIONS: { value: PricingType; label: string }[] = [
   { value: 'SET_PRICE', label: 'Set price' },
@@ -58,24 +59,30 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   return (
-    <Card className="space-y-4">
-      <h3 className="text-base font-semibold text-ink">Upload track</h3>
-      {error && <p className="text-sm text-error">{error}</p>}
-      <Input
-        label="Track title"
-        placeholder="Track title"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-      />
-      <Input
-        label="Genre"
-        placeholder="Genre"
-        value={genre}
-        onChange={(e) => setGenre(e.target.value)}
-      />
+    <Card className="space-y-4 p-6">
+      <h3 className="text-base font-semibold text-foreground">Upload track</h3>
+      {error && <p className="text-sm text-destructive">{error}</p>}
+      <div className="space-y-2">
+        <Label htmlFor="track-title">Track title</Label>
+        <Input
+          id="track-title"
+          placeholder="Track title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="track-genre">Genre</Label>
+        <Input
+          id="track-genre"
+          placeholder="Genre"
+          value={genre}
+          onChange={(e) => setGenre(e.target.value)}
+        />
+      </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-medium text-ink">Pricing</legend>
+        <legend className="text-sm font-medium text-foreground">Pricing</legend>
         <div className="flex flex-wrap gap-4">
           {PRICING_OPTIONS.map((option) => (
             <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm">
@@ -87,46 +94,50 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
                 onChange={() => setPricingType(option.value)}
                 className="accent-primary"
               />
-              <span className="text-ink">{option.label}</span>
+              <span className="text-foreground">{option.label}</span>
             </label>
           ))}
         </div>
       </fieldset>
 
       {pricingType === 'SET_PRICE' && (
-        <Input
-          label="Price (ZMW)"
-          type="number"
-          min="0.01"
-          step="0.01"
-          placeholder="Price (ZMW)"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="track-price">Price (ZMW)</Label>
+          <Input
+            id="track-price"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="Price (ZMW)"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+          />
+        </div>
       )}
 
       {pricingType === 'PAY_WHAT_YOU_WANT' && (
-        <Input
-          label="Minimum price (ZMW)"
-          type="number"
-          min="0.01"
-          step="0.01"
-          placeholder="Minimum (ZMW)"
-          value={minPrice}
-          onChange={(e) => setMinPrice(e.target.value)}
-        />
+        <div className="space-y-2">
+          <Label htmlFor="track-min-price">Minimum price (ZMW)</Label>
+          <Input
+            id="track-min-price"
+            type="number"
+            min="0.01"
+            step="0.01"
+            placeholder="Minimum (ZMW)"
+            value={minPrice}
+            onChange={(e) => setMinPrice(e.target.value)}
+          />
+        </div>
       )}
 
-      <div className="space-y-1">
-        <label htmlFor="track-audio" className="block text-sm font-medium text-ink">
-          Audio file
-        </label>
-        <input
+      <div className="space-y-2">
+        <Label htmlFor="track-audio">Audio file</Label>
+        <Input
           id="track-audio"
           type="file"
           accept="audio/*"
           onChange={(e) => setAudio(e.target.files?.[0] ?? null)}
-          className="w-full text-sm text-muted file:mr-3 file:rounded-sm file:border file:border-hairline file:bg-surface-soft file:px-3 file:py-2 file:text-sm file:text-ink"
+          className="text-sm text-muted-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:text-foreground"
         />
       </div>
       <div className="flex flex-wrap gap-3">
@@ -140,7 +151,7 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         </Button>
         <Button
           type="button"
-          variant="primary"
+          variant="default"
           onClick={() => submit(true)}
           disabled={!title || !audio || createTrack.isPending}
         >

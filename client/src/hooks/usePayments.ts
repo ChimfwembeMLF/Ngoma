@@ -11,6 +11,22 @@ type PaymentOptions = {
   }>;
 };
 
+export type PaymentConfig = {
+  pawapayEnabled: boolean;
+  environment: string;
+  webhookUrl: string;
+  devAutoComplete: boolean;
+  baseUrl: string | null;
+};
+
+export function usePaymentConfig() {
+  return useQuery({
+    queryKey: ['payments', 'config'],
+    queryFn: () =>
+      apiFetch<{ success: boolean; data: PaymentConfig }>('/api/v1/payments/config'),
+  });
+}
+
 export function usePaymentOptions() {
   return useQuery({
     queryKey: ['payments', 'options'],
@@ -44,7 +60,13 @@ export function usePaymentStatus(depositId?: string, enabled = false) {
     queryFn: () =>
       apiFetch<{
         success: boolean;
-        data: { status: string; depositId: string; paymentId: string };
+        data: {
+          status: string;
+          depositId: string;
+          paymentId: string;
+          completedAt?: string | null;
+          errorMessage?: string | null;
+        };
       }>(`/api/v1/payments/status/${depositId}`),
     enabled: enabled && !!depositId,
     refetchInterval: enabled ? 3000 : false,
@@ -60,6 +82,7 @@ type PaymentHistoryItem = {
   itemId?: string;
   createdAt?: string;
   completedAt?: string | null;
+  errorMessage?: string | null;
 };
 
 export function usePaymentHistory() {
@@ -73,7 +96,7 @@ export function usePaymentHistory() {
 }
 
 export function useUpdateArtistProfile() {
-  const qc = useQueryClient();
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: {
       artistName?: string;
@@ -84,6 +107,6 @@ export function useUpdateArtistProfile() {
         method: 'PUT',
         body: JSON.stringify(body),
       }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['auth', 'me'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['auth', 'me'] }),
   });
 }

@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { createReadStream, existsSync } from 'fs';
 import { Track, PricingType } from './entities/track.entity';
 import { DownloadAccess } from './entities/download-access.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -231,15 +230,16 @@ export class TracksService {
     return track;
   }
 
-  private fileStream(url: string, type: string, filename?: string) {
-    const path = this.media.resolvePath(url);
-    if (!existsSync(path)) throw new NotFoundException('File not found');
-    const stream = createReadStream(path);
-    const headers: Record<string, string> = { 'Content-Type': type };
+  private async fileStream(url: string, type: string, filename?: string) {
+    const media = await this.media.openReadStream(url, type);
+    const headers: Record<string, string> = { 'Content-Type': media.contentType };
     if (filename) {
       headers['Content-Disposition'] = `attachment; filename="${filename}"`;
     }
-    return new StreamableFile(stream, { type, disposition: headers['Content-Disposition'] });
+    return new StreamableFile(media.stream, {
+      type: media.contentType,
+      disposition: headers['Content-Disposition'],
+    });
   }
 
   private applyPricingFields(

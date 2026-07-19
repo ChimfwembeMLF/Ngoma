@@ -1,15 +1,15 @@
 import { Navigate } from 'react-router-dom';
-import { DesignSystemLayout } from './layout/DesignSystemLayout';
-import { useAuth } from '../hooks/useAuth';
+import { AppShell } from '@/components/layout/AppShell';
+import { useAuth } from '@/hooks/useAuth';
 
 export function AdminRoute({ children }: { children: React.ReactNode }) {
   const { meQuery } = useAuth();
 
   if (meQuery.isLoading) {
     return (
-      <DesignSystemLayout>
-        <div className="p-8 text-center text-muted">Loading…</div>
-      </DesignSystemLayout>
+      <AppShell>
+        <div className="p-8 text-center text-muted-foreground">Loading…</div>
+      </AppShell>
     );
   }
   if (meQuery.isError) {

@@ -1,6 +1,10 @@
 import { BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import axios, { isAxiosError } from 'axios';
+import {
+  resolvePawaPayBaseUrl,
+  resolvePawaPayToken,
+} from '../../common/payments.config';
 
 export type PawaPayDepositInput = {
   depositId: string;
@@ -15,45 +19,14 @@ export type ParsedPawaPayDepositStatus = {
   depositId?: string;
   depositStatus?: string;
   lookupStatus?: string;
+  transactionId?: string;
+  errorCode?: string;
+  errorMessage?: string;
 };
 
-const PAWAPAY_V2_SANDBOX = 'https://api.sandbox.pawapay.io/v2';
-const PAWAPAY_V2_PROD = 'https://api.pawapay.io/v2';
 const PAWAPAY_LOOKUP_STATUSES = new Set(['FOUND', 'NOT_FOUND']);
 
-function firstNonEmpty(...values: Array<string | undefined>): string {
-  for (const value of values) {
-    const trimmed = value?.trim();
-    if (trimmed) return trimmed;
-  }
-  return '';
-}
-
-export function resolvePawaPayToken(config: ConfigService): string {
-  return firstNonEmpty(
-    config.get<string>('PAWAPAY_API_TOKEN'),
-    config.get<string>('PAWAPAY_SANDBOX_API_TOKEN'),
-  );
-}
-
-export function resolvePawaPayBaseUrl(config: ConfigService): string {
-  const env = config.get<string>('PAWAPAY_ENV') || config.get<string>('PAWAPAY_ENVIRONMENT');
-  const isSandbox = env !== 'production' && env !== 'prod';
-  const raw = isSandbox
-    ? firstNonEmpty(
-        config.get<string>('PAWAPAY_BASE_URL_SANDBOX'),
-        config.get<string>('PAWAPAY_SANDBOX_API_URL'),
-      )
-    : firstNonEmpty(
-        config.get<string>('PAWAPAY_BASE_URL_PROD'),
-        config.get<string>('PAWAPAY_API_URL'),
-      );
-  const fallback = isSandbox ? PAWAPAY_V2_SANDBOX : PAWAPAY_V2_PROD;
-  let base = (raw || fallback).trim().replace(/\/$/, '');
-  base = base.replace(/\/v1$/i, '/v2');
-  if (!/\/v2$/i.test(base)) base = `${base}/v2`;
-  return base;
-}
+export { resolvePawaPayToken, resolvePawaPayBaseUrl };
 
 export function buildPawaPayDepositPayload(input: PawaPayDepositInput) {
   const msg = input.customerMessage.trim().slice(0, 22);
@@ -72,9 +45,59 @@ export function buildPawaPayDepositPayload(input: PawaPayDepositInput) {
   };
 }
 
-export function parsePawaPayDepositStatus(data: unknown): ParsedPawaPayDepositStatus | null {
+function readRecord(data: unknown): Record<string, unknown> | null {
   if (!data || typeof data !== 'object') return null;
-  const record = data as Record<string, unknown>;
+  return data as Record<string, unknown>;
+}
+
+export function extractPawaPayMetadata(data: unknown): {
+  transactionId?: string;
+  errorCode?: string;
+  errorMessage?: string;
+} {
+  const record = readRecord(data);
+  if (!record) return {};
+
+  const inner =
+    record.data && typeof record.data === 'object'
+      ? (record.data as Record<string, unknown>)
+      : record;
+
+  const failureReason = inner.failureReason;
+  const failureObj =
+    failureReason && typeof failureReason === 'object'
+      ? (failureReason as Record<string, unknown>)
+      : null;
+
+  return {
+    transactionId:
+      typeof inner.financialTransactionId === 'string'
+        ? inner.financialTransactionId
+        : typeof inner.transactionId === 'string'
+          ? inner.transactionId
+          : undefined,
+    errorCode:
+      typeof inner.errorCode === 'string'
+        ? inner.errorCode
+        : typeof failureObj?.code === 'string'
+          ? failureObj.code
+          : undefined,
+    errorMessage:
+      typeof inner.errorMessage === 'string'
+        ? inner.errorMessage
+        : typeof failureReason === 'string'
+          ? failureReason
+          : typeof failureObj?.message === 'string'
+            ? failureObj.message
+            : undefined,
+  };
+}
+
+export function parsePawaPayDepositStatus(data: unknown): ParsedPawaPayDepositStatus | null {
+  const record = readRecord(data);
+  if (!record) return null;
+
+  const metadata = extractPawaPayMetadata(data);
 
   if (record.data && typeof record.data === 'object') {
     const inner = record.data as Record<string, unknown>;
@@ -89,9 +112,9 @@ export function parsePawaPayDepositStatus(data: unknown): ParsedPawaPayDepositSt
           ? record.depositId
           : undefined;
     if (lookupStatus === 'NOT_FOUND') {
-      return { depositId, lookupStatus, depositStatus: undefined };
+      return { depositId, lookupStatus, depositStatus: undefined, ...metadata };
     }
-    return { depositId, lookupStatus, depositStatus };
+    return { depositId, lookupStatus, depositStatus, ...metadata };
   }
 
   const topLevelStatus =
@@ -101,17 +124,23 @@ export function parsePawaPayDepositStatus(data: unknown): ParsedPawaPayDepositSt
       depositId: typeof record.depositId === 'string' ? record.depositId : undefined,
       lookupStatus: topLevelStatus,
       depositStatus: undefined,
+      ...metadata,
     };
   }
 
   return {
     depositId: typeof record.depositId === 'string' ? record.depositId : undefined,
     depositStatus: topLevelStatus,
+    ...metadata,
   };
 }
 
 export function isPawaPayDepositCompleted(status?: string | null): boolean {
   return (status ?? '').toUpperCase() === 'COMPLETED';
+}
+
+export function isPawaPayDepositFailed(status?: string | null): boolean {
+  return (status ?? '').toUpperCase() === 'FAILED';
 }
 
 function formatPawaPayError(error: unknown): string {

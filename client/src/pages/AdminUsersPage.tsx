@@ -1,18 +1,20 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useAdminUsers, useDeactivateUser } from '../hooks/useAdmin';
-import { UserTable } from '../components/admin/UserTable';
-import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
-import { Card } from '../components/ui/Card';
-import { Button, buttonVariants } from '../components/ui/Button';
-import { cn } from '../lib/utils';
+import { useAdminUsers, useDeactivateUser } from '@/hooks/useAdmin';
+import { UserTable } from '@/components/admin/UserTable';
+import { AppShell } from '@/components/layout/AppShell';
+import { Card } from '@/components/ui/card';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const PAGE_SIZE = 20;
-
-const selectClassName = cn(
-  'min-h-[44px] rounded-sm border border-hairline bg-canvas px-3 py-2 text-base text-ink',
-  'focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20',
-);
 
 export function AdminUsersPage() {
   const [offset, setOffset] = useState(0);
@@ -28,39 +30,40 @@ export function AdminUsersPage() {
   const total = data?.pagination.total ?? 0;
 
   return (
-    <DesignSystemLayout maxWidth="6xl">
+    <AppShell maxWidth="6xl">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-[22px] font-medium text-ink">Admin — Users</h1>
-        <Link to="/dashboard" className={buttonVariants('outline')}>
+        <h1 className="text-[22px] font-medium text-foreground">Admin — Users</h1>
+        <Link to="/dashboard" className={buttonVariants({ variant: 'outline' })}>
           Back to dashboard
         </Link>
       </div>
 
-      <div className="mb-6">
-        <label htmlFor="role-filter" className="mb-1 block text-sm font-medium text-ink">
-          Filter by role
-        </label>
-        <select
-          id="role-filter"
-          className={selectClassName}
-          value={role}
-          onChange={(e) => {
-            setRole(e.target.value);
+      <div className="mb-6 space-y-2">
+        <Label htmlFor="role-filter">Filter by role</Label>
+        <Select
+          value={role || 'ALL'}
+          onValueChange={(value) => {
+            setRole(value === 'ALL' ? '' : value);
             setOffset(0);
           }}
         >
-          <option value="">All roles</option>
-          <option value="LISTENER">Listener</option>
-          <option value="ARTIST">Artist</option>
-          <option value="ADMIN">Admin</option>
-        </select>
+          <SelectTrigger id="role-filter" className="w-full sm:w-48">
+            <SelectValue placeholder="All roles" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All roles</SelectItem>
+            <SelectItem value="LISTENER">Listener</SelectItem>
+            <SelectItem value="ARTIST">Artist</SelectItem>
+            <SelectItem value="ADMIN">Admin</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
-      {isLoading && <p className="text-sm text-muted">Loading users…</p>}
+      {isLoading && <p className="text-sm text-muted-foreground">Loading users…</p>}
 
       {error && (
-        <Card className="border-error/30 bg-surface-soft">
-          <p className="text-sm text-error">Failed to load users</p>
+        <Card className="border-destructive/30 bg-muted p-6">
+          <p className="text-sm text-destructive">Failed to load users</p>
         </Card>
       )}
 
@@ -72,7 +75,7 @@ export function AdminUsersPage() {
             deactivatingId={deactivate.isPending ? deactivate.variables : undefined}
           />
           <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <span className="text-sm text-muted">
+            <span className="text-sm text-muted-foreground">
               Showing {total === 0 ? 0 : offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
             </span>
             <div className="flex gap-2">
@@ -96,6 +99,6 @@ export function AdminUsersPage() {
           </div>
         </>
       )}
-    </DesignSystemLayout>
+    </AppShell>
   );
 }

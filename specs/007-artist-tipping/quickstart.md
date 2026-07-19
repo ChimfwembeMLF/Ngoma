@@ -90,3 +90,16 @@ curl -s -H "Authorization: Bearer $ARTIST_TOKEN" \
 - [tips-api.md](./contracts/tips-api.md)
 - [tip-ui.md](./contracts/tip-ui.md)
 - [data-model.md](./data-model.md)
+
+## Implementation validation (2026-07-19)
+
+| Scenario | Result | Notes |
+|----------|--------|-------|
+| VS-701 Send tip | PASS (build) | `POST /api/v1/payments/tip`; presets + custom on `/tip/:artistId` |
+| VS-702 Message | PASS (build) | Optional message stored on `tips.message` |
+| VS-703 Analytics | PASS (code) | `analytics.service` sums all earnings — TIP included |
+| VS-704 Tip list | PASS (build) | `GET /api/v1/tips/received`; Recent tips on dashboard |
+| VS-705 Validation | PASS (code) | Self-tip 403; min ZMW 1 via DTO |
+| SC-703 Regression | PASS (build) | Checkout unchanged |
+| Migration 007 | PASS | `tips` table + TIP enums applied |
+| Lint / build | PASS | API and client lint + build succeed |

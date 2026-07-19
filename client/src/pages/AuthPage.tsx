@@ -1,16 +1,25 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
-import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
-import { Card } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Button, buttonVariants } from '../components/ui/Button';
-import { cn } from '../lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { AppShell } from '@/components/layout/AppShell';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 export function AuthPage() {
   const navigate = useNavigate();
   const { loginMutation, registerMutation } = useAuth();
   const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [role, setRole] = useState('LISTENER');
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -31,7 +40,7 @@ export function AuthPage() {
           password: String(fd.get('password')),
           fullName: String(fd.get('fullName')),
           country: String(fd.get('country') || 'ZM'),
-          role: String(fd.get('role') || 'LISTENER'),
+          role,
           artistName: String(fd.get('artistName') || fd.get('fullName')),
         });
       }
@@ -44,16 +53,19 @@ export function AuthPage() {
   const pending = loginMutation.isPending || registerMutation.isPending;
 
   return (
-    <DesignSystemLayout maxWidth="md" centered>
-      <Card className="w-full shadow-card">
-        <h1 className="text-[22px] font-medium text-ink">Ngoma</h1>
-        <p className="mb-6 mt-1 text-sm text-muted">The Heartbeat of African Music</p>
+    <AppShell maxWidth="md" centered>
+      <Card className="w-full p-6 shadow-lg shadow-black/30">
+        <h1 className="text-[22px] font-medium text-foreground">Ngoma</h1>
+        <p className="mb-6 mt-1 text-sm text-muted-foreground">The Heartbeat of African Music</p>
 
         <div className="mb-6 flex gap-2">
           <button
             type="button"
             className={cn(
-              buttonVariants(mode === 'login' ? 'primary' : 'outline', 'flex-1'),
+              buttonVariants({
+                variant: mode === 'login' ? 'default' : 'outline',
+                className: 'flex-1',
+              }),
             )}
             onClick={() => setMode('login')}
           >
@@ -62,7 +74,10 @@ export function AuthPage() {
           <button
             type="button"
             className={cn(
-              buttonVariants(mode === 'register' ? 'primary' : 'outline', 'flex-1'),
+              buttonVariants({
+                variant: mode === 'register' ? 'default' : 'outline',
+                className: 'flex-1',
+              }),
             )}
             onClick={() => setMode('register')}
           >
@@ -73,33 +88,50 @@ export function AuthPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {mode === 'register' && (
             <>
-              <Input name="fullName" label="Full name" placeholder="Full name" required />
-              <Input name="phone" label="Phone" placeholder="+260971234567" required />
-              <div className="space-y-1">
-                <label htmlFor="role" className="block text-sm font-medium text-ink">
-                  Role
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  className="w-full min-h-[56px] rounded-sm border border-hairline bg-canvas px-3 py-2 text-base text-ink focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  <option value="LISTENER">Listener</option>
-                  <option value="ARTIST">Artist</option>
-                </select>
+              <div className="space-y-2">
+                <Label htmlFor="fullName">Full name</Label>
+                <Input id="fullName" name="fullName" placeholder="Full name" required />
               </div>
-              <Input name="artistName" label="Artist name" placeholder="Optional" />
-              <Input name="country" label="Country" defaultValue="ZM" placeholder="ZM" />
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" name="phone" placeholder="+260971234567" required />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="role">Role</Label>
+                <Select value={role} onValueChange={setRole}>
+                  <SelectTrigger id="role" className="w-full">
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="LISTENER">Listener</SelectItem>
+                    <SelectItem value="ARTIST">Artist</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="artistName">Artist name</Label>
+                <Input id="artistName" name="artistName" placeholder="Optional" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input id="country" name="country" defaultValue="ZM" placeholder="ZM" />
+              </div>
             </>
           )}
-          <Input name="email" type="email" label="Email" placeholder="you@example.com" required />
-          <Input name="password" type="password" label="Password" placeholder="••••••••" required />
-          {error && <p className="text-sm text-error">{error}</p>}
-          <Button type="submit" variant="primary" className="w-full" disabled={pending}>
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" type="email" placeholder="you@example.com" required />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" name="password" type="password" placeholder="••••••••" required />
+          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
+          <Button type="submit" variant="default" className="w-full" disabled={pending}>
             {pending ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
           </Button>
         </form>
       </Card>
-    </DesignSystemLayout>
+    </AppShell>
   );
 }

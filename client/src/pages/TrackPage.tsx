@@ -2,6 +2,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useTrack } from '../hooks/useTracks';
 import { AudioPlayer } from '../components/player/AudioPlayer';
+import { formatDuration } from '../lib/format-duration';
 import { getAccessToken } from '../lib/auth-storage';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
@@ -49,6 +50,9 @@ export function TrackPage() {
         <h1 className="text-3xl font-bold text-cream">{track.title}</h1>
         <p className="text-cream/70">{track.artistName}</p>
         <p className="text-cream/60 text-sm mt-1">{track.genre}</p>
+        {track.duration != null && track.duration > 0 && (
+          <p className="text-cream/50 text-sm">{formatDuration(track.duration)}</p>
+        )}
       </div>
 
       <AudioPlayer src={streamUrl} title={track.title} artistName={track.artistName} />

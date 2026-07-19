@@ -1,5 +1,6 @@
-import { Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Post, Query, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -16,10 +17,15 @@ export class AdminController {
 
   @Get('users')
   @ApiOperation({ summary: 'List users' })
-  async listUsers(@Query('limit') limit?: string, @Query('offset') offset?: string) {
+  async listUsers(
+    @Query('limit') limit?: string,
+    @Query('offset') offset?: string,
+    @Query('role') role?: UserRole,
+  ) {
     const [items, total] = await this.admin.listUsers(
       limit ? Number(limit) : 50,
       offset ? Number(offset) : 0,
+      role,
     );
     return {
       success: true,
@@ -34,7 +40,7 @@ export class AdminController {
 
   @Post('users/:id/deactivate')
   @ApiOperation({ summary: 'Deactivate user' })
-  deactivate(@Param('id') id: string) {
-    return this.admin.deactivateUser(id);
+  deactivate(@Param('id') id: string, @Req() req: Request) {
+    return this.admin.deactivateUser(id, req.user?.['sub'] as string);
   }
 }

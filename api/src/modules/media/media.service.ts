@@ -3,9 +3,15 @@ import { ConfigService } from '@nestjs/config';
 import { mkdir, writeFile } from 'fs/promises';
 import { join, extname } from 'path';
 import { randomUUID } from 'crypto';
+import { parseAudioDuration } from './audio-metadata.util';
 
 const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+export type SaveAudioResult = {
+  url: string;
+  duration: number | null;
+};
 
 @Injectable()
 export class MediaService {
@@ -15,7 +21,7 @@ export class MediaService {
     this.uploadRoot = this.config.get<string>('UPLOAD_DIR') || join(process.cwd(), 'uploads');
   }
 
-  async saveAudio(file: Express.Multer.File): Promise<string> {
+  async saveAudio(file: Express.Multer.File): Promise<SaveAudioResult> {
     if (!file?.buffer?.length) throw new BadRequestException('Audio file is required');
     if (file.size > MAX_AUDIO_BYTES) {
       throw new BadRequestException('Audio file exceeds 50 MB limit');
@@ -25,7 +31,9 @@ export class MediaService {
     if (!allowed.includes(ext)) {
       throw new BadRequestException('Unsupported audio format');
     }
-    return this.saveFile('tracks', file, ext);
+    const duration = await parseAudioDuration(file.buffer);
+    const url = await this.saveFile('tracks', file, ext);
+    return { url, duration };
   }
 
   async saveImage(file: Express.Multer.File): Promise<string> {

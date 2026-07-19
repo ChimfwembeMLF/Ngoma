@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    // Keep proxy target in sync with api/.env PORT (default 4000; use 4001 if port conflict)
     proxy: {
       '/api': { target: 'http://localhost:4001', changeOrigin: true },
       '/documentation': { target: 'http://localhost:4001', changeOrigin: true },

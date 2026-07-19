@@ -26,6 +26,6 @@ export class DiscoveryController {
     @Query('limit') limit?: string,
     @Query('offset') offset?: string,
   ) {
-    return this.discovery.search(q || '', limit ? Number(limit) : 20, offset ? Number(offset) : 0);
+    return this.discovery.search(q ?? '', limit ? Number(limit) : 20, offset ? Number(offset) : 0);
   }
 }

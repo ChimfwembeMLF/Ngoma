@@ -8,7 +8,9 @@ import { CheckoutPage } from './pages/CheckoutPage';
 import { ArtistDashboardPage } from './pages/ArtistDashboardPage';
 import { ArtistProfilePage } from './pages/ArtistProfilePage';
 import { PurchaseHistoryPage } from './pages/PurchaseHistoryPage';
+import { AdminUsersPage } from './pages/AdminUsersPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
+import { AdminRoute } from './components/AdminRoute';
 
 const queryClient = new QueryClient();
 
@@ -59,6 +61,14 @@ export default function App() {
               <ProtectedRoute>
                 <PurchaseHistoryPage />
               </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/users"
+            element={
+              <AdminRoute>
+                <AdminUsersPage />
+              </AdminRoute>
             }
           />
         </Routes>

@@ -14,11 +14,13 @@
 
 ## Bootstrap admin user (one-time)
 
+Edit the email in `api/scripts/seed-admin.sql`, then after registering that user via `/auth`:
+
 ```bash
-# After registering a user via /auth, promote to ADMIN:
 psql -h 127.0.0.1 -p 5433 -U ngoma -d ngoma -f api/scripts/seed-admin.sql
-# Edit email in script first
 ```
+
+See `api/scripts/seed-admin.sql` for the `UPDATE users SET role = 'ADMIN' WHERE email = ...` statement.
 
 ## Validation Scenarios
 
@@ -47,6 +49,19 @@ psql -h 127.0.0.1 -p 5433 -U ngoma -d ngoma -f api/scripts/seed-admin.sql
 
 1. Re-run VS-1–VS-5 from `specs/001-platform-mvp/quickstart.md`.
 2. **Expected**: All pass with updated port documentation.
+
+## Validation results (2026-07-19)
+
+| Scenario | Status | Notes |
+|----------|--------|-------|
+| VS-101 Admin UI | Manual | `/admin/users` route + `AdminRoute` guard; deactivate blocked for self; login rejects inactive users |
+| VS-102 Duration | Manual | `music-metadata` on upload; `formatDuration` on Discover + Track pages |
+| VS-103 FTS | Pass (API) | Migration 004 applied; empty `q` → 400; FTS query via `plainto_tsquery` + `ts_rank` |
+| VS-104 Regression | Pass (build) | API + client build and lint clean; 001 quickstart port docs updated |
+
+Automated checks: `yarn install`, migration 004, `yarn build` (api + client), `yarn lint` (api + client), `GET /discovery/search?q=` → 400.
+
+Manual follow-up: promote admin via `seed-admin.sql`, walk VS-101–VS-102 in browser, re-run VS-1–VS-5 from 001 quickstart.
 
 ## Troubleshooting
 

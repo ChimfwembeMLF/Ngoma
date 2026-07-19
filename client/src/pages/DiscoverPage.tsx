@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTrending, useNewReleases, useSearch } from '../hooks/useDiscovery';
+import { formatDuration } from '../lib/format-duration';
 
 export function DiscoverPage() {
   const [search, setSearch] = useState('');
@@ -55,6 +56,9 @@ export function DiscoverPage() {
                 </div>
                 <div className="font-medium text-cream">{track.title}</div>
                 <div className="text-sm text-cream/60">{track.artistName}</div>
+                {track.duration > 0 && (
+                  <div className="text-xs text-cream/50">{formatDuration(track.duration)}</div>
+                )}
                 <div className="text-sm text-terracotta mt-1">
                   {track.pricingType === 'FREE' ? 'Free' : `ZMW ${track.price}`}
                 </div>

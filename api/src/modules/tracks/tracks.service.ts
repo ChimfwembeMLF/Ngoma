@@ -39,6 +39,7 @@ export class TracksService {
       isPublished: false,
     });
     const saved = await this.tracksRepo.save(track);
+    await this.syncSearchVector(saved.id);
     return { success: true, data: saved };
   }
 
@@ -129,6 +130,7 @@ export class TracksService {
       track.isPublished = false;
     }
     const saved = await this.tracksRepo.save(track);
+    await this.syncSearchVector(saved.id);
     return { success: true, data: saved };
   }
 
@@ -147,12 +149,17 @@ export class TracksService {
   ) {
     const track = await this.getOwnedTrack(artistId, id);
     if (audio) {
-      track.audioFileUrl = await this.media.saveAudio(audio);
+      const audioResult = await this.media.saveAudio(audio);
+      track.audioFileUrl = audioResult.url;
+      if (audioResult.duration != null) {
+        track.duration = audioResult.duration;
+      }
     }
     if (coverArt) {
       track.coverArtUrl = await this.media.saveImage(coverArt);
     }
     const saved = await this.tracksRepo.save(track);
+    await this.syncSearchVector(saved.id);
     return { success: true, data: saved };
   }
 
@@ -197,6 +204,21 @@ export class TracksService {
     if (!access) return false;
     if (access.expiresAt && access.expiresAt < new Date()) return false;
     return true;
+  }
+
+  async syncSearchVector(trackId: string) {
+    await this.tracksRepo.query(
+      `
+      UPDATE tracks t
+      SET search_vector = to_tsvector(
+        'english',
+        coalesce(t.title, '') || ' ' || coalesce(t.genre, '') || ' ' || coalesce(a.artist_name, '')
+      )
+      FROM artists a
+      WHERE t.id = $1 AND t.artist_id = a.id
+      `,
+      [trackId],
+    );
   }
 
   private async getOwnedTrack(artistId: string, id: string) {

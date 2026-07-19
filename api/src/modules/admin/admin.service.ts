@@ -1,7 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { User } from '../user/entities/user.entity';
+import { User, UserRole } from '../user/entities/user.entity';
 
 @Injectable()
 export class AdminService {
@@ -10,8 +10,9 @@ export class AdminService {
     private readonly usersRepo: Repository<User>,
   ) {}
 
-  listUsers(limit = 50, offset = 0) {
+  listUsers(limit = 50, offset = 0, role?: UserRole) {
     return this.usersRepo.findAndCount({
+      where: role ? { role } : {},
       order: { createdAt: 'DESC' },
       take: Math.min(limit, 100),
       skip: offset,
@@ -27,7 +28,10 @@ export class AdminService {
     });
   }
 
-  async deactivateUser(id: string) {
+  async deactivateUser(id: string, actorId: string) {
+    if (id === actorId) {
+      throw new ForbiddenException('Cannot deactivate your own account');
+    }
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
     user.isActive = false;

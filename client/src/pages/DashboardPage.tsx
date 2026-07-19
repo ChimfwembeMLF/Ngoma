@@ -28,6 +28,11 @@ export function DashboardPage() {
         <Link to="/purchases" className="px-4 py-2 rounded-lg border border-indigo-600 text-cream">
           Purchase history
         </Link>
+        {user?.role === 'ADMIN' && (
+          <Link to="/admin/users" className="px-4 py-2 rounded-lg bg-indigo-800 text-cream">
+            Admin users
+          </Link>
+        )}
         {user?.role === 'ARTIST' && (
           <>
             <Link to="/artist/dashboard" className="px-4 py-2 rounded-lg bg-terracotta text-white">

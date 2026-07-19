@@ -21,7 +21,8 @@ Copy `api/.env.example` → `api/.env` and set at minimum:
 ```env
 NODE_ENV=development
 PORT=4000
-DATABASE_URL=postgresql://ngoma:ngoma@localhost:5432/ngoma
+# Use 5433 when docker-compose maps Postgres to host 5433 (local Postgres on 5432)
+DATABASE_URL=postgresql://ngoma:ngoma@localhost:5433/ngoma
 REDIS_URL=redis://localhost:6379
 JWT_SECRET=dev_jwt_secret_change_me
 JWT_REFRESH_SECRET=dev_refresh_secret_change_me
@@ -29,6 +30,8 @@ PAWAPAY_ENVIRONMENT=sandbox
 PAWAPAY_SANDBOX_API_TOKEN=<your_token>
 PAWAPAY_WEBHOOK_URL=http://localhost:4000/api/v1/payments/webhook
 ```
+
+If port **4000** is in use, set `PORT=4001` in `api/.env` and match the Vite proxy target in `client/vite.config.ts`.
 
 ## 3. Install and migrate
 
@@ -89,18 +92,17 @@ API docs: http://localhost:4000/documentation
 
 | Issue | Check |
 |-------|-------|
-| CORS errors | Vite proxy in `client/vite.config.ts` → port 4000 |
+| CORS errors | Vite proxy in `client/vite.config.ts` → match `PORT` in `api/.env` (4000 or 4001) |
 | Migration fails | Postgres running; `DATABASE_URL` correct |
 | Payment stuck PENDING | Webhook URL; API logs for PawaPay events |
 | Upload fails | Local `api/uploads/` writable (default storage for MVP) |
 
 ## Implementation gaps (2026-07-19)
 
+Addressed in **`002-mvp-hardening`** — see [002 quickstart](../002-mvp-hardening/quickstart.md) for validation (VS-101–VS-104).
+
 - **VS-3 sandbox without PawaPay token**: In `NODE_ENV=development` with no `PAWAPAY_API_TOKEN` / `PAWAPAY_SANDBOX_API_TOKEN`, deposits auto-complete for local testing.
 - **VS-3 with real token**: Requires valid PawaPay sandbox credentials and phone number; webhook must be reachable for production-like flow.
-- **Audio duration**: Not extracted from uploaded MP3 yet (`duration` stays 0).
-- **PostgreSQL FTS**: Search uses ILIKE fallback, not full-text search indexes.
-- **Admin UI**: Admin API exists (`/api/v1/admin/users`); no client admin page yet.
 - **Download auth from browser**: Paid downloads use authenticated `fetch` + blob (not direct link).
 
 ## Contract references

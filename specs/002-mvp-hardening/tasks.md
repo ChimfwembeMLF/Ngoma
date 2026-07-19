@@ -18,9 +18,9 @@
 
 **Purpose**: Add dependencies and dev bootstrap scripts for hardening work
 
-- [ ] T001 Add `music-metadata` dependency to `api/package.json` and run `yarn install`
-- [ ] T002 [P] Create `api/scripts/seed-admin.sql` to promote a user to ADMIN by email (per research.md R3)
-- [ ] T003 [P] Update `api/.env.example` with `DB_PORT=5433` and `PORT` conflict notes (per research.md R4)
+- [X] T001 Add `music-metadata` dependency to `api/package.json` and run `yarn install`
+- [X] T002 [P] Create `api/scripts/seed-admin.sql` to promote a user to ADMIN by email (per research.md R3)
+- [X] T003 [P] Update `api/.env.example` with `DB_PORT=5433` and `PORT` conflict notes (per research.md R4)
 
 ---
 
@@ -30,11 +30,11 @@
 
 **⚠️ CRITICAL**: No user story work until this phase completes
 
-- [ ] T004 Create migration `api/database/migrations/1719000000004-TrackSearchFts.ts` adding `search_vector tsvector`, GIN index, and backfill from title/genre/artist name per data-model.md
-- [ ] T005 Add self-deactivate guard in `api/src/modules/admin/admin.service.ts` (403 when admin deactivates own account per spec edge case)
-- [ ] T006 [P] Add optional `role` query filter to `GET /api/v1/admin/users` in `api/src/modules/admin/admin.controller.ts` and `admin.service.ts` per contracts/admin.md
-- [ ] T007 [P] Create `AdminRoute` role guard component in `client/src/components/AdminRoute.tsx` (redirect non-ADMIN users)
-- [ ] T008 Run migration 004 and verify `search_vector` column exists on `tracks`
+- [X] T004 Create migration `api/database/migrations/1719000000004-TrackSearchFts.ts` adding `search_vector tsvector`, GIN index, and backfill from title/genre/artist name per data-model.md
+- [X] T005 Add self-deactivate guard in `api/src/modules/admin/admin.service.ts` (403 when admin deactivates own account per spec edge case)
+- [X] T006 [P] Add optional `role` query filter to `GET /api/v1/admin/users` in `api/src/modules/admin/admin.controller.ts` and `admin.service.ts` per contracts/admin.md
+- [X] T007 [P] Create `AdminRoute` role guard component in `client/src/components/AdminRoute.tsx` (redirect non-ADMIN users)
+- [X] T008 Run migration 004 and verify `search_vector` column exists on `tracks`
 
 **Checkpoint**: FTS column migrated, admin API supports role filter and self-guard, client has admin route wrapper
 
@@ -48,11 +48,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Create `useAdminUsers` and `useDeactivateUser` hooks in `client/src/hooks/useAdmin.ts` (TanStack Query)
-- [ ] T010 [P] [US1] Create `UserTable` component in `client/src/components/admin/UserTable.tsx` (email, name, role, status, join date, deactivate action)
-- [ ] T011 [US1] Build `AdminUsersPage` with pagination and role filter in `client/src/pages/AdminUsersPage.tsx`
-- [ ] T012 [US1] Register `/admin/users` route with `AdminRoute` in `client/src/App.tsx`
-- [ ] T013 [US1] Add admin dashboard link for ADMIN role in `client/src/pages/DashboardPage.tsx`
+- [X] T009 [P] [US1] Create `useAdminUsers` and `useDeactivateUser` hooks in `client/src/hooks/useAdmin.ts` (TanStack Query)
+- [X] T010 [P] [US1] Create `UserTable` component in `client/src/components/admin/UserTable.tsx` (email, name, role, status, join date, deactivate action)
+- [X] T011 [US1] Build `AdminUsersPage` with pagination and role filter in `client/src/pages/AdminUsersPage.tsx`
+- [X] T012 [US1] Register `/admin/users` route with `AdminRoute` in `client/src/App.tsx`
+- [X] T013 [US1] Add admin dashboard link for ADMIN role in `client/src/pages/DashboardPage.tsx`
 
 **Checkpoint**: US1 complete — admin manages users without Swagger (VS-101)
 
@@ -66,12 +66,12 @@
 
 ### Implementation for User Story 2
 
-- [ ] T014 [P] [US2] Create `parseAudioDuration` helper in `api/src/modules/media/audio-metadata.util.ts` using `music-metadata`
-- [ ] T015 [US2] Return parsed duration from `MediaService.saveAudio` in `api/src/modules/media/media.service.ts`
-- [ ] T016 [US2] Persist `duration` in `TracksService.uploadFiles` in `api/src/modules/tracks/tracks.service.ts`
-- [ ] T017 [P] [US2] Create `formatDuration(seconds)` util in `client/src/lib/format-duration.ts` (mm:ss)
-- [ ] T018 [US2] Display duration on track cards in `client/src/pages/DiscoverPage.tsx`
-- [ ] T019 [US2] Display duration on track detail in `client/src/pages/TrackPage.tsx`
+- [X] T014 [P] [US2] Create `parseAudioDuration` helper in `api/src/modules/media/audio-metadata.util.ts` using `music-metadata`
+- [X] T015 [US2] Return parsed duration from `MediaService.saveAudio` in `api/src/modules/media/media.service.ts`
+- [X] T016 [US2] Persist `duration` in `TracksService.uploadFiles` in `api/src/modules/tracks/tracks.service.ts`
+- [X] T017 [P] [US2] Create `formatDuration(seconds)` util in `client/src/lib/format-duration.ts` (mm:ss)
+- [X] T018 [US2] Display duration on track cards in `client/src/pages/DiscoverPage.tsx`
+- [X] T019 [US2] Display duration on track detail in `client/src/pages/TrackPage.tsx`
 
 **Checkpoint**: US2 complete — duration extracted and visible (VS-102)
 
@@ -85,11 +85,11 @@
 
 ### Implementation for User Story 3
 
-- [ ] T020 [US3] Add `syncSearchVector(trackId)` in `api/src/modules/tracks/tracks.service.ts` (title + genre + artist name → tsvector)
-- [ ] T021 [US3] Call `syncSearchVector` on track create, update, and publish in `api/src/modules/tracks/tracks.service.ts`
-- [ ] T022 [US3] Replace ILIKE search with `plainto_tsquery` + `ts_rank` in `api/src/modules/discovery/discovery.service.ts` per contracts/discovery.md
-- [ ] T023 [US3] Return 400 when `q` is missing or empty in `api/src/modules/discovery/discovery.controller.ts`
-- [ ] T024 [US3] Sanitize FTS query input (strip/skip invalid `plainto_tsquery` tokens) in `discovery.service.ts`
+- [X] T020 [US3] Add `syncSearchVector(trackId)` in `api/src/modules/tracks/tracks.service.ts` (title + genre + artist name → tsvector)
+- [X] T021 [US3] Call `syncSearchVector` on track create, update, and publish in `api/src/modules/tracks/tracks.service.ts`
+- [X] T022 [US3] Replace ILIKE search with `plainto_tsquery` + `ts_rank` in `api/src/modules/discovery/discovery.service.ts` per contracts/discovery.md
+- [X] T023 [US3] Return 400 when `q` is missing or empty in `api/src/modules/discovery/discovery.controller.ts`
+- [X] T024 [US3] Sanitize FTS query input (strip/skip invalid `plainto_tsquery` tokens) in `discovery.service.ts`
 
 **Checkpoint**: US3 complete — FTS search ranked and validated (VS-103)
 
@@ -103,10 +103,10 @@
 
 ### Implementation for User Story 4
 
-- [ ] T025 [P] [US4] Confirm Postgres host port `5433:5432` in `docker-compose.yml` and document in `specs/001-platform-mvp/quickstart.md`
-- [ ] T026 [P] [US4] Update `specs/001-platform-mvp/quickstart.md` troubleshooting for API port conflicts and vite proxy alignment
-- [ ] T027 [US4] Add proxy port comment in `client/vite.config.ts` referencing `api/.env` `PORT` value
-- [ ] T028 [US4] Cross-link `specs/002-mvp-hardening/quickstart.md` admin bootstrap steps with `api/scripts/seed-admin.sql`
+- [X] T025 [P] [US4] Confirm Postgres host port `5433:5432` in `docker-compose.yml` and document in `specs/001-platform-mvp/quickstart.md`
+- [X] T026 [P] [US4] Update `specs/001-platform-mvp/quickstart.md` troubleshooting for API port conflicts and vite proxy alignment
+- [X] T027 [US4] Add proxy port comment in `client/vite.config.ts` referencing `api/.env` `PORT` value
+- [X] T028 [US4] Cross-link `specs/002-mvp-hardening/quickstart.md` admin bootstrap steps with `api/scripts/seed-admin.sql`
 
 **Checkpoint**: US4 complete — onboarding docs match real dev setup (VS-104)
 
@@ -116,9 +116,9 @@
 
 **Purpose**: Lint, validation, and regression pass
 
-- [ ] T029 Run `yarn lint` in `api/` and `client/` workspaces and fix blocking issues
-- [ ] T030 Validate VS-101 through VS-104 in `specs/002-mvp-hardening/quickstart.md`
-- [ ] T031 Re-run VS-1 through VS-5 from `specs/001-platform-mvp/quickstart.md` and note results in `specs/002-mvp-hardening/quickstart.md`
+- [X] T029 Run `yarn lint` in `api/` and `client/` workspaces and fix blocking issues
+- [X] T030 Validate VS-101 through VS-104 in `specs/002-mvp-hardening/quickstart.md`
+- [X] T031 Re-run VS-1 through VS-5 from `specs/001-platform-mvp/quickstart.md` and note results in `specs/002-mvp-hardening/quickstart.md`
 
 ---
 

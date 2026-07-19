@@ -1,7 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Track } from '../tracks/entities/track.entity';
+
+function sanitizeFtsQuery(q: string): string {
+  return q
+    .trim()
+    .replace(/[^\w\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
 
 @Injectable()
 export class DiscoveryService {
@@ -37,16 +45,18 @@ export class DiscoveryService {
   }
 
   async search(q: string, limit = 20, offset = 0) {
+    const sanitized = sanitizeFtsQuery(q);
+    if (!sanitized) {
+      throw new BadRequestException('Search query is required');
+    }
+
     const items = await this.tracksRepo
       .createQueryBuilder('track')
       .innerJoinAndSelect('track.artist', 'artist')
       .where('track.is_published = true')
       .andWhere('track.is_active = true')
-      .andWhere(
-        '(track.title ILIKE :q OR artist.artist_name ILIKE :q OR track.genre ILIKE :q)',
-        { q: `%${q}%` },
-      )
-      .orderBy('track.created_at', 'DESC')
+      .andWhere(`track.search_vector @@ plainto_tsquery('english', :q)`, { q: sanitized })
+      .orderBy(`ts_rank(track.search_vector, plainto_tsquery('english', :q))`, 'DESC')
       .skip(offset)
       .take(Math.min(limit, 50))
       .getMany();

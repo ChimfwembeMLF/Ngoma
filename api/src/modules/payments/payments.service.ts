@@ -38,7 +38,7 @@ import {
   postPawaPayDeposit,
   type ParsedPawaPayDepositStatus,
 } from './pawapay.client';
-import { listPaymentCountryOptions, normalizeMobileMoneyPhone } from './payment-countries';
+import { listPaymentCountryOptions, normalizeMobileMoneyPhone, resolveOperatorByPawapayCode, resolvePaymentCorrespondent } from './payment-countries';
 
 const PLATFORM_FEE_RATE = 0.3;
 const TIP_PLATFORM_FEE_RATE = 0.05;
@@ -66,6 +66,19 @@ export class PaymentsService {
 
   listMobileMoneyOptions() {
     return listPaymentCountryOptions();
+  }
+
+  private resolveCorrespondent(dto: InitiatePaymentDto | InitiateTipDto) {
+    try {
+      return resolvePaymentCorrespondent({
+        operatorId: dto.operatorId,
+        provider: dto.provider,
+        countryId: dto.countryId,
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Invalid payment details';
+      throw new BadRequestException(message);
+    }
   }
 
   getPaymentConfig() {
@@ -113,7 +126,8 @@ export class PaymentsService {
 
     const depositId = randomUUID();
     const amount = String(dto.amount);
-    const currency = dto.currency || 'ZMW';
+    const { pawapayCode, dialCode, currency: countryCurrency } = this.resolveCorrespondent(dto);
+    const currency = dto.currency || countryCurrency;
 
     const payment = await this.paymentsRepo.save(
       this.paymentsRepo.create({
@@ -121,14 +135,14 @@ export class PaymentsService {
         depositId,
         amount,
         currency,
-        provider: dto.provider,
+        provider: pawapayCode,
         status: PaymentStatus.INITIATED,
         purpose: dto.purpose,
         itemId: dto.itemId,
       }),
     );
 
-    await this.submitToGateway(payment, dto.phone, dto.provider, `Ngoma ${track.title}`);
+    await this.submitToGateway(payment, dto.phone, pawapayCode, dialCode, `Ngoma ${track.title}`);
 
     return {
       success: true,
@@ -161,7 +175,8 @@ export class PaymentsService {
 
     const depositId = randomUUID();
     const amount = String(dto.amount);
-    const currency = dto.currency || 'ZMW';
+    const { pawapayCode, dialCode, currency: countryCurrency } = this.resolveCorrespondent(dto);
+    const currency = dto.currency || countryCurrency;
 
     const payment = await this.paymentsRepo.save(
       this.paymentsRepo.create({
@@ -169,7 +184,7 @@ export class PaymentsService {
         depositId,
         amount,
         currency,
-        provider: dto.provider,
+        provider: pawapayCode,
         status: PaymentStatus.INITIATED,
         purpose: PaymentPurpose.TIP,
         itemId: dto.artistId,
@@ -190,7 +205,8 @@ export class PaymentsService {
     await this.submitToGateway(
       payment,
       dto.phone,
-      dto.provider,
+      pawapayCode,
+      dialCode,
       `Ngoma tip ${artist.artistName}`,
     );
 
@@ -280,7 +296,15 @@ export class PaymentsService {
     });
     return {
       success: true,
-      data: items,
+      data: items.map((payment) => {
+        const operator = payment.provider
+          ? resolveOperatorByPawapayCode(payment.provider)
+          : null;
+        return {
+          ...payment,
+          providerDisplayName: operator?.displayName ?? payment.provider,
+        };
+      }),
       pagination: { total, limit, offset },
     };
   }
@@ -338,11 +362,12 @@ export class PaymentsService {
     payment: Payment,
     phone: string | undefined,
     provider: string,
+    dialCode: string,
     customerMessage: string,
   ) {
     const token = resolvePawaPayToken(this.config);
     if (token) {
-      const normalizedPhone = normalizeMobileMoneyPhone('260', phone);
+      const normalizedPhone = normalizeMobileMoneyPhone(dialCode, phone);
       if (!normalizedPhone) {
         throw new BadRequestException('Phone number is required for mobile money payment');
       }

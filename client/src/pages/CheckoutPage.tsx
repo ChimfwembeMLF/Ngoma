@@ -4,17 +4,14 @@ import { useTrack } from '@/hooks/useTracks';
 import { useInitiatePayment, usePaymentConfig, usePaymentOptions } from '@/hooks/usePayments';
 import { AppShell } from '@/components/layout/AppShell';
 import { PaymentStatusPanel } from '@/components/payments/PaymentStatusPanel';
+import {
+  MobileMoneyForm,
+  type MobileMoneyFormValue,
+} from '@/components/payments/MobileMoneyForm';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 
 export function CheckoutPage() {
   const { trackId = '' } = useParams();
@@ -23,16 +20,27 @@ export function CheckoutPage() {
   const paymentConfig = usePaymentConfig();
   const options = usePaymentOptions();
   const initiate = useInitiatePayment();
-  const [provider, setProvider] = useState('');
-  const [phone, setPhone] = useState('');
+  const [mobileMoney, setMobileMoney] = useState<MobileMoneyFormValue>({
+    countryId: 'ZM',
+    operatorId: '',
+    phone: '',
+  });
   const [amount, setAmount] = useState('');
   const [depositId, setDepositId] = useState<string | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [error, setError] = useState('');
 
   const pawapayEnabled = paymentConfig.data?.data.pawapayEnabled ?? true;
+  const countries = options.data?.data.countries ?? [];
+  const defaultCountryId = options.data?.data.defaultCountryId ?? 'ZM';
   const isPwyw = track?.pricingType === 'PAY_WHAT_YOU_WANT';
   const minAmount = isPwyw ? (track?.minPrice ?? 0) : Number(track?.price ?? 0);
+
+  useEffect(() => {
+    if (defaultCountryId) {
+      setMobileMoney((prev) => ({ ...prev, countryId: defaultCountryId }));
+    }
+  }, [defaultCountryId]);
 
   useEffect(() => {
     if (!track) return;
@@ -43,8 +51,8 @@ export function CheckoutPage() {
     }
   }, [track?.id, track?.pricingType, track?.minPrice, track?.price]);
 
-  const zambia = options.data?.data?.[0];
-  const providers = zambia?.providers ?? [];
+  const selectedCountry =
+    countries.find((c) => c.id === mobileMoney.countryId) ?? countries[0];
 
   const resetPayment = () => {
     setDepositId(null);
@@ -53,8 +61,8 @@ export function CheckoutPage() {
   };
 
   const pay = async () => {
-    if (!track || !provider) return;
-    if (pawapayEnabled && !phone.trim()) {
+    if (!track || !mobileMoney.operatorId) return;
+    if (pawapayEnabled && !mobileMoney.phone.trim()) {
       setError('Phone number is required for mobile money payment');
       return;
     }
@@ -67,11 +75,12 @@ export function CheckoutPage() {
     try {
       const result = await initiate.mutateAsync({
         amount: payAmount,
-        currency: 'ZMW',
-        provider,
+        currency: selectedCountry?.currency ?? 'ZMW',
+        operatorId: mobileMoney.operatorId,
+        countryId: mobileMoney.countryId,
         purpose: 'TRACK_DOWNLOAD',
         itemId: track.id,
-        phone,
+        phone: mobileMoney.phone,
       });
       setDepositId(result.data.depositId);
     } catch (e) {
@@ -111,7 +120,7 @@ export function CheckoutPage() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {!depositId ? (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {isPwyw && (
               <div className="space-y-2">
                 <Label htmlFor="amount">Your amount (ZMW)</Label>
@@ -125,37 +134,20 @@ export function CheckoutPage() {
                 />
               </div>
             )}
-            <div className="space-y-2">
-              <Label htmlFor="provider">Mobile money provider</Label>
-              <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger id="provider" className="w-full">
-                  <SelectValue placeholder="Select provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {providers.map((p) => (
-                    <SelectItem key={p.code} value={p.code}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone number{pawapayEnabled ? ' *' : ''}</Label>
-              <Input
-                id="phone"
-                placeholder="e.g. 0977123456"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required={pawapayEnabled}
-              />
-            </div>
+            <MobileMoneyForm
+              countries={countries}
+              defaultCountryId={defaultCountryId}
+              pawapayEnabled={pawapayEnabled}
+              value={mobileMoney}
+              onChange={setMobileMoney}
+              disabled={initiate.isPending}
+            />
             <Button
               type="button"
               variant="default"
               className="w-full"
               onClick={pay}
-              disabled={!provider || initiate.isPending}
+              disabled={!mobileMoney.operatorId || initiate.isPending}
             >
               Pay with mobile money
             </Button>

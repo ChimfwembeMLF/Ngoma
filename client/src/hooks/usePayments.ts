@@ -1,14 +1,13 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api-client';
+import type { PaymentCountryOption } from '@/components/payments/MobileMoneyForm';
 
 type PaymentOptions = {
   success: boolean;
-  data: Array<{
-    id: string;
-    name: string;
-    currency: string;
-    providers: Array<{ code: string; label: string }>;
-  }>;
+  data: {
+    countries: PaymentCountryOption[];
+    defaultCountryId: string;
+  };
 };
 
 export type PaymentConfig = {
@@ -39,7 +38,8 @@ export function useInitiatePayment() {
     mutationFn: (body: {
       amount: number;
       currency?: string;
-      provider: string;
+      operatorId: string;
+      countryId: string;
       purpose: 'TRACK_DOWNLOAD';
       itemId: string;
       phone?: string;
@@ -80,6 +80,8 @@ type PaymentHistoryItem = {
   status: string;
   purpose?: string;
   itemId?: string;
+  provider?: string;
+  providerDisplayName?: string;
   createdAt?: string;
   completedAt?: string | null;
   errorMessage?: string | null;

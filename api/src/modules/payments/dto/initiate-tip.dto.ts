@@ -6,6 +6,7 @@ import {
   IsUUID,
   MaxLength,
   Min,
+  ValidateIf,
 } from 'class-validator';
 
 export class InitiateTipDto {
@@ -20,9 +21,19 @@ export class InitiateTipDto {
   @IsString()
   currency?: string;
 
+  @ValidateIf((o) => !o.operatorId)
   @IsString()
   @IsNotEmpty()
-  provider: string;
+  provider?: string;
+
+  @ValidateIf((o) => !o.provider)
+  @IsString()
+  @IsNotEmpty()
+  operatorId?: string;
+
+  @IsOptional()
+  @IsString()
+  countryId?: string;
 
   @IsOptional()
   @IsString()

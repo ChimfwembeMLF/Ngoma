@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useCreatePlaylist, useMyPlaylists } from '@/hooks/usePlaylists';
 import { AppShell } from '@/components/layout/AppShell';
+import { PlaylistCard } from '@/components/playlists/PlaylistCard';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -107,22 +107,19 @@ export function PlaylistsPage() {
       {!isLoading && playlists.length > 0 && (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {playlists.map((playlist) => (
-            <Link key={playlist.id} to={`/playlists/${playlist.id}`}>
-              <Card className="p-6 transition hover:ring-foreground/20">
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="text-lg font-semibold text-foreground">{playlist.name}</h2>
-                  <span className="shrink-0 rounded-sm bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                    {playlist.isPublic ? 'Public' : 'Private'}
-                  </span>
-                </div>
-                {playlist.description && (
-                  <p className="mt-2 line-clamp-2 text-sm text-muted-foreground">{playlist.description}</p>
-                )}
-                <p className="mt-3 text-sm text-muted-foreground/80">
-                  {playlist.trackCount} {playlist.trackCount === 1 ? 'track' : 'tracks'}
-                </p>
-              </Card>
-            </Link>
+            <PlaylistCard
+              key={playlist.id}
+              name={playlist.name}
+              trackCount={playlist.trackCount}
+              coverArtUrl={playlist.coverArtUrl}
+              href={`/playlists/${playlist.id}`}
+              subtitle={playlist.description ?? undefined}
+              badge={
+                <span className="shrink-0 rounded-sm bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                  {playlist.isPublic ? 'Public' : 'Private'}
+                </span>
+              }
+            />
           ))}
         </div>
       )}

@@ -58,6 +58,7 @@ export class PlaylistsService {
           description: playlist.description ?? null,
           isPublic: playlist.isPublic,
           trackCount,
+          coverArtUrl: playlist.coverArtUrl ?? null,
           createdAt: playlist.createdAt,
         };
       }),

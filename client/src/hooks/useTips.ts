@@ -26,7 +26,8 @@ export function useInitiateTip() {
     mutationFn: (body: {
       artistId: string;
       amount: number;
-      provider: string;
+      operatorId: string;
+      countryId: string;
       phone?: string;
       message?: string;
       trackId?: string;

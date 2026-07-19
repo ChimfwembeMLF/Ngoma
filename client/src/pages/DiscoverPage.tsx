@@ -4,10 +4,10 @@ import { useTrending, useNewReleases, useSearch } from '@/hooks/useDiscovery';
 import { useCuratedPlaylists } from '@/hooks/usePlaylists';
 import { getAccessToken } from '@/lib/auth-storage';
 import { AppShell } from '@/components/layout/AppShell';
+import { PlaylistCard } from '@/components/playlists/PlaylistCard';
 import { SearchPill } from '@/components/ui/SearchPill';
 import { TrackCard } from '@/components/ui/TrackCard';
 import { buttonVariants } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 
 export function DiscoverPage() {
   const [search, setSearch] = useState('');
@@ -65,28 +65,13 @@ export function DiscoverPage() {
                 ? `/playlists/share/${playlist.shareSlug}`
                 : `/playlists/${playlist.id}`;
               return (
-                <Link key={playlist.id} to={href}>
-                  <Card className="h-full transition-colors hover:bg-muted/50">
-                    <div className="flex h-32 items-center justify-center rounded-t-lg bg-muted">
-                      {playlist.coverArtUrl ? (
-                        <img
-                          src={playlist.coverArtUrl}
-                          alt=""
-                          className="h-full w-full rounded-t-lg object-cover"
-                        />
-                      ) : (
-                        <span className="text-3xl text-muted-foreground/60">♪</span>
-                      )}
-                    </div>
-                    <div className="p-4">
-                      <h3 className="font-semibold text-foreground">{playlist.name}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {playlist.trackCount}{' '}
-                        {playlist.trackCount === 1 ? 'track' : 'tracks'}
-                      </p>
-                    </div>
-                  </Card>
-                </Link>
+                <PlaylistCard
+                  key={playlist.id}
+                  name={playlist.name}
+                  trackCount={playlist.trackCount}
+                  coverArtUrl={playlist.coverArtUrl}
+                  href={href}
+                />
               );
             })}
           </div>

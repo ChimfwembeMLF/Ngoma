@@ -34,7 +34,7 @@ export class PaymentsController {
   @Get('mobile-money/options')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'List mobile money providers' })
+  @ApiOperation({ summary: 'List mobile money countries and operators (user-friendly labels)' })
   mobileMoneyOptions() {
     return this.payments.listMobileMoneyOptions();
   }
@@ -42,7 +42,7 @@ export class PaymentsController {
   @Post('deposit')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Initiate track purchase payment' })
+  @ApiOperation({ summary: 'Initiate track purchase payment (operatorId preferred over legacy provider code)' })
   deposit(@Req() req: Request, @Body() dto: InitiatePaymentDto) {
     return this.payments.initiateDeposit(req.user?.['sub'] as string, dto);
   }

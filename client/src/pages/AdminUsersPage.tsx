@@ -33,9 +33,14 @@ export function AdminUsersPage() {
     <AppShell maxWidth="6xl">
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-[22px] font-medium text-foreground">Admin — Users</h1>
-        <Link to="/dashboard" className={buttonVariants({ variant: 'outline' })}>
-          Back to dashboard
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/admin/theme" className={buttonVariants({ variant: 'outline' })}>
+            Theme
+          </Link>
+          <Link to="/dashboard" className={buttonVariants({ variant: 'outline' })}>
+            Back to dashboard
+          </Link>
+        </div>
       </div>
 
       <div className="mb-6 space-y-2">

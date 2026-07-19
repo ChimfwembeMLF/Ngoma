@@ -44,9 +44,14 @@ export function DashboardPage() {
           Purchase history
         </Link>
         {user?.role === 'ADMIN' && (
-          <Link to="/admin/users" className={buttonVariants({ variant: 'default' })}>
-            Admin users
-          </Link>
+          <>
+            <Link to="/admin/users" className={buttonVariants({ variant: 'default' })}>
+              Admin users
+            </Link>
+            <Link to="/admin/theme" className={buttonVariants({ variant: 'outline' })}>
+              Theme settings
+            </Link>
+          </>
         )}
         {user?.role === 'ARTIST' && (
           <>

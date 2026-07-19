@@ -12,15 +12,18 @@ import { PlaylistsPage } from './pages/PlaylistsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { PurchaseHistoryPage } from './pages/PurchaseHistoryPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { AdminThemePage } from './pages/AdminThemePage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
+import { ThemeProvider } from './providers/ThemeProvider';
 
 const queryClient = new QueryClient();
 
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <ThemeProvider>
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
@@ -92,8 +95,17 @@ export default function App() {
               </AdminRoute>
             }
           />
+          <Route
+            path="/admin/theme"
+            element={
+              <AdminRoute>
+                <AdminThemePage />
+              </AdminRoute>
+            }
+          />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

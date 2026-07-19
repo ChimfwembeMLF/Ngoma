@@ -6,6 +6,7 @@ import {
   IsString,
   IsUUID,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { PaymentPurpose } from '../entities/payment.entity';
 
@@ -18,9 +19,19 @@ export class InitiatePaymentDto {
   @IsString()
   currency?: string;
 
+  @ValidateIf((o) => !o.operatorId)
   @IsString()
   @IsNotEmpty()
-  provider: string;
+  provider?: string;
+
+  @ValidateIf((o) => !o.provider)
+  @IsString()
+  @IsNotEmpty()
+  operatorId?: string;
+
+  @IsOptional()
+  @IsString()
+  countryId?: string;
 
   @IsEnum(PaymentPurpose)
   purpose: PaymentPurpose;

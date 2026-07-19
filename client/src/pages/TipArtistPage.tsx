@@ -1,21 +1,18 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { usePaymentConfig, usePaymentOptions } from '@/hooks/usePayments';
 import { useArtistPublic, useInitiateTip } from '@/hooks/useTips';
 import { AppShell } from '@/components/layout/AppShell';
 import { PaymentStatusPanel } from '@/components/payments/PaymentStatusPanel';
+import {
+  MobileMoneyForm,
+  type MobileMoneyFormValue,
+} from '@/components/payments/MobileMoneyForm';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button, buttonVariants } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
 const PRESETS = [5, 10, 25, 50] as const;
@@ -34,15 +31,27 @@ export function TipArtistPage() {
   const [selectedPreset, setSelectedPreset] = useState<number>(10);
   const [customAmount, setCustomAmount] = useState('');
   const [message, setMessage] = useState('');
-  const [provider, setProvider] = useState('');
-  const [phone, setPhone] = useState('');
+  const [mobileMoney, setMobileMoney] = useState<MobileMoneyFormValue>({
+    countryId: 'ZM',
+    operatorId: '',
+    phone: '',
+  });
   const [depositId, setDepositId] = useState<string | null>(null);
   const [tipComplete, setTipComplete] = useState(false);
   const [error, setError] = useState('');
 
   const pawapayEnabled = paymentConfig.data?.data.pawapayEnabled ?? true;
-  const zambia = options.data?.data?.[0];
-  const providers = zambia?.providers ?? [];
+  const countries = options.data?.data.countries ?? [];
+  const defaultCountryId = options.data?.data.defaultCountryId ?? 'ZM';
+
+  useEffect(() => {
+    if (defaultCountryId) {
+      setMobileMoney((prev) => ({ ...prev, countryId: defaultCountryId }));
+    }
+  }, [defaultCountryId]);
+
+  const selectedCountry =
+    countries.find((c) => c.id === mobileMoney.countryId) ?? countries[0];
 
   const amount = customAmount ? Number(customAmount) : selectedPreset;
 
@@ -53,8 +62,8 @@ export function TipArtistPage() {
   };
 
   const sendTip = async () => {
-    if (!artistId || !provider) return;
-    if (pawapayEnabled && !phone.trim()) {
+    if (!artistId || !mobileMoney.operatorId) return;
+    if (pawapayEnabled && !mobileMoney.phone.trim()) {
       setError('Phone number is required for mobile money payment');
       return;
     }
@@ -67,11 +76,12 @@ export function TipArtistPage() {
       const result = await initiate.mutateAsync({
         artistId,
         amount,
-        provider,
-        phone,
+        operatorId: mobileMoney.operatorId,
+        countryId: mobileMoney.countryId,
+        phone: mobileMoney.phone,
         message: message.trim() || undefined,
         trackId,
-        currency: 'ZMW',
+        currency: selectedCountry?.currency ?? 'ZMW',
       });
       setDepositId(result.data.depositId);
     } catch (e) {
@@ -113,7 +123,7 @@ export function TipArtistPage() {
         {error && <p className="text-sm text-destructive">{error}</p>}
 
         {!depositId ? (
-          <Card className="space-y-4 p-6">
+          <Card className="space-y-6 p-6">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {PRESETS.map((preset) => (
                 <button
@@ -160,44 +170,28 @@ export function TipArtistPage() {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="tip-provider">Mobile money provider</Label>
-              <Select value={provider} onValueChange={setProvider}>
-                <SelectTrigger id="tip-provider" className="w-full">
-                  <SelectValue placeholder="Select provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {providers.map((p) => (
-                    <SelectItem key={p.code} value={p.code}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="tip-phone">Phone number{pawapayEnabled ? ' *' : ''}</Label>
-              <Input
-                id="tip-phone"
-                placeholder="e.g. 0977123456"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required={pawapayEnabled}
-              />
-            </div>
+            <MobileMoneyForm
+              countries={countries}
+              defaultCountryId={defaultCountryId}
+              pawapayEnabled={pawapayEnabled}
+              value={mobileMoney}
+              onChange={setMobileMoney}
+              disabled={initiate.isPending}
+            />
 
             <Button
               type="button"
               variant="default"
               className="w-full"
               onClick={sendTip}
-              disabled={!provider || initiate.isPending}
+              disabled={!mobileMoney.operatorId || initiate.isPending}
             >
               Send tip · ZMW {amount.toFixed(2)}
             </Button>
 
-            <p className="text-xs text-muted-foreground">95% goes to the artist (minus payment processing)</p>
+            <p className="text-xs text-muted-foreground">
+              95% goes to the artist (minus payment processing)
+            </p>
           </Card>
         ) : (
           <div className="space-y-4">

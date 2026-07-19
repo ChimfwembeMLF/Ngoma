@@ -7,6 +7,7 @@ export type PlaylistSummary = {
   description: string | null;
   isPublic: boolean;
   trackCount: number;
+  coverArtUrl: string | null;
   createdAt: string;
 };
 

@@ -20,6 +20,8 @@ import { UserRole } from '../user/entities/user.entity';
 import { CreateCuratedPlaylistDto } from '../playlists/dto/create-curated-playlist.dto';
 import { UpdateCuratedPlaylistDto } from '../playlists/dto/update-curated-playlist.dto';
 import { AddPlaylistTrackDto } from '../playlists/dto/add-playlist-track.dto';
+import { UpdateThemeDto } from '../platform/dto/update-theme.dto';
+import { ApplyThemePresetDto } from '../platform/dto/apply-theme-preset.dto';
 
 @ApiTags('Admin')
 @Controller('api/v1/admin')
@@ -92,5 +94,32 @@ export class AdminController {
   @ApiOperation({ summary: 'Remove track from curated playlist' })
   removeCuratedTrack(@Param('id') id: string, @Param('trackId') trackId: string) {
     return this.admin.removeCuratedTrack(id, trackId);
+  }
+
+  @Get('settings/theme')
+  @ApiOperation({ summary: 'Get platform theme settings' })
+  getTheme() {
+    return this.admin.getTheme();
+  }
+
+  @Put('settings/theme')
+  @ApiOperation({ summary: 'Update platform theme' })
+  updateTheme(@Body() dto: UpdateThemeDto) {
+    return this.admin.updateTheme({
+      presetId: dto.presetId,
+      theme: dto.theme,
+    });
+  }
+
+  @Put('settings/theme/preset')
+  @ApiOperation({ summary: 'Apply a theme preset swatch' })
+  applyThemePreset(@Body() dto: ApplyThemePresetDto) {
+    return this.admin.applyThemePreset(dto.presetId);
+  }
+
+  @Post('settings/theme/reset')
+  @ApiOperation({ summary: 'Reset theme to defaults' })
+  resetTheme() {
+    return this.admin.resetTheme();
   }
 }

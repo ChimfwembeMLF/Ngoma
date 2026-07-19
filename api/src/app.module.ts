@@ -18,6 +18,7 @@ import { MediaModule } from './modules/media/media.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { PlatformModule } from './modules/platform/platform.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
 
@@ -47,6 +48,7 @@ import { PlaylistsModule } from './modules/playlists/playlists.module';
     PaymentsModule,
     DiscoveryModule,
     AdminModule,
+    PlatformModule,
     AnalyticsModule,
     PlaylistsModule,
   ],

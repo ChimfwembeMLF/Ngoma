@@ -81,6 +81,9 @@ export function PurchaseHistoryPage() {
                   <div className="font-medium text-foreground">
                     {String(p.currency ?? 'ZMW')} {String(p.amount ?? '')}
                   </div>
+                  {p.providerDisplayName && (
+                    <div className="text-xs text-muted-foreground">{String(p.providerDisplayName)}</div>
+                  )}
                   <div className={`text-sm capitalize ${statusColor(status)}`}>{status.toLowerCase()}</div>
                   {status === 'FAILED' && p.errorMessage && (
                     <p className="mt-1 text-xs text-destructive">{String(p.errorMessage)}</p>

@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-cream text-indigo antialiased;
+@layer base {
+  body {
+    @apply min-h-screen bg-canvas font-sans text-ink antialiased;
+  }
 }

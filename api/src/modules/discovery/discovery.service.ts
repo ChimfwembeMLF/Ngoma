@@ -35,9 +35,10 @@ export class DiscoveryService {
     const items = await this.tracksRepo
       .createQueryBuilder('track')
       .innerJoinAndSelect('track.artist', 'artist')
+      .addSelect('COALESCE(track.release_date, track.created_at)', 'sort_date')
       .where('track.is_published = true')
       .andWhere('track.is_active = true')
-      .orderBy('COALESCE(track.release_date, track.created_at)', 'DESC')
+      .orderBy('sort_date', 'DESC')
       .take(Math.min(limit, 50))
       .getMany();
 
@@ -53,10 +54,12 @@ export class DiscoveryService {
     const items = await this.tracksRepo
       .createQueryBuilder('track')
       .innerJoinAndSelect('track.artist', 'artist')
+      .addSelect(`ts_rank(track.search_vector, plainto_tsquery('english', :q))`, 'rank')
       .where('track.is_published = true')
       .andWhere('track.is_active = true')
       .andWhere(`track.search_vector @@ plainto_tsquery('english', :q)`, { q: sanitized })
-      .orderBy(`ts_rank(track.search_vector, plainto_tsquery('english', :q))`, 'DESC')
+      .orderBy('rank', 'DESC')
+      .setParameter('q', sanitized)
       .skip(offset)
       .take(Math.min(limit, 50))
       .getMany();
@@ -72,6 +75,7 @@ export class DiscoveryService {
       artistId: track.artistId,
       coverArtUrl: track.coverArtUrl,
       price: track.price ? Number(track.price) : null,
+      minPrice: track.minPrice ? Number(track.minPrice) : null,
       pricingType: track.pricingType,
       genre: track.genre,
       duration: track.duration,

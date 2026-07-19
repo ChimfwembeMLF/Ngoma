@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Howl } from 'howler';
+import { Button } from '../ui/Button';
 
 type Props = {
   src: string;
@@ -49,19 +50,18 @@ export function AudioPlayer({ src, title, artistName }: Props) {
   };
 
   return (
-    <div className="rounded-xl bg-indigo-900/40 border border-indigo-700/50 p-4">
-      <div className="text-sm text-cream/70">{artistName}</div>
-      <div className="font-semibold text-cream mb-3">{title}</div>
-      <div className="h-1 bg-indigo-950 rounded mb-3">
-        <div className="h-1 bg-terracotta rounded" style={{ width: `${progress}%` }} />
+    <div className="rounded-md border border-hairline bg-canvas p-4 shadow-sm">
+      {artistName && <div className="text-sm text-muted">{artistName}</div>}
+      <div className="mb-3 font-semibold text-ink">{title}</div>
+      <div className="mb-3 h-1.5 rounded-full bg-surface-soft">
+        <div
+          className="h-1.5 rounded-full bg-primary transition-all"
+          style={{ width: `${progress}%` }}
+        />
       </div>
-      <button
-        type="button"
-        onClick={toggle}
-        className="px-4 py-2 rounded-lg bg-terracotta text-white hover:bg-terracotta/90"
-      >
+      <Button type="button" onClick={toggle} variant="primary">
         {playing ? 'Pause' : 'Play'}
-      </button>
+      </Button>
     </div>
   );
 }

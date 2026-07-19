@@ -51,11 +51,22 @@ export function usePaymentStatus(depositId?: string, enabled = false) {
   });
 }
 
+type PaymentHistoryItem = {
+  id: string;
+  amount: string | number;
+  currency: string;
+  status: string;
+  purpose?: string;
+  itemId?: string;
+  createdAt?: string;
+  completedAt?: string | null;
+};
+
 export function usePaymentHistory() {
   return useQuery({
     queryKey: ['payments', 'history'],
     queryFn: () =>
-      apiFetch<{ success: boolean; data: Array<Record<string, unknown>> }>(
+      apiFetch<{ success: boolean; data: PaymentHistoryItem[]; pagination?: unknown }>(
         '/api/v1/payments/history',
       ),
   });

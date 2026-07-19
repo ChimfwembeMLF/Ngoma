@@ -50,16 +50,16 @@ See `api/scripts/seed-admin.sql` for the `UPDATE users SET role = 'ADMIN' WHERE 
 1. Re-run VS-1–VS-5 from `specs/001-platform-mvp/quickstart.md`.
 2. **Expected**: All pass with updated port documentation.
 
-## Validation results (2026-07-19)
+## Validation results (2026-07-19, re-verified)
 
 | Scenario | Status | Notes |
 |----------|--------|-------|
-| VS-101 Admin UI | Manual | `/admin/users` route + `AdminRoute` guard; deactivate blocked for self; login rejects inactive users |
-| VS-102 Duration | Manual | `music-metadata` on upload; `formatDuration` on Discover + Track pages |
-| VS-103 FTS | Pass (API) | Migration 004 applied; empty `q` → 400; FTS query via `plainto_tsquery` + `ts_rank` |
-| VS-104 Regression | Pass (build) | API + client build and lint clean; 001 quickstart port docs updated |
+| VS-101 Admin UI | Manual | `/admin/users` + `AdminRoute`; self-deactivate guard; login rejects `isActive=false` |
+| VS-102 Duration | Manual | `parseAudioDuration` on upload; `formatDuration` on Discover + Track pages |
+| VS-103 FTS | Pass (API) | Migration 004 applied (no pending); empty `q` → 400; `plainto_tsquery` + `ts_rank` |
+| VS-104 Regression | Pass (build) | API + client build and lint clean; 001 quickstart port docs aligned |
 
-Automated checks: `yarn install`, migration 004, `yarn build` (api + client), `yarn lint` (api + client), `GET /discovery/search?q=` → 400.
+Automated checks (this run): migrations up-to-date, `yarn build` + `yarn lint` (api + client), `GET /discovery/search?q=` → 400.
 
 Manual follow-up: promote admin via `seed-admin.sql`, walk VS-101–VS-102 in browser, re-run VS-1–VS-5 from 001 quickstart.
 

@@ -34,4 +34,9 @@ export class CreateTrackDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @Min(0.01)
   price?: number;
+
+  @ValidateIf((o) => o.pricingType === PricingType.PAY_WHAT_YOU_WANT)
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  minPrice?: number;
 }

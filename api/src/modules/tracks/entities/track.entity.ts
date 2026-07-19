@@ -12,6 +12,7 @@ import { Album } from '../../albums/entities/album.entity';
 
 export enum PricingType {
   SET_PRICE = 'SET_PRICE',
+  PAY_WHAT_YOU_WANT = 'PAY_WHAT_YOU_WANT',
   FREE = 'FREE',
 }
 
@@ -40,6 +41,9 @@ export class Track {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
   price?: string;
+
+  @Column({ name: 'min_price', type: 'decimal', precision: 10, scale: 2, nullable: true })
+  minPrice?: string;
 
   @Column({ name: 'audio_file_url', nullable: true })
   audioFileUrl?: string;

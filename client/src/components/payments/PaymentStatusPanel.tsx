@@ -1,10 +1,34 @@
 import { useEffect } from 'react';
 import { usePaymentStatus } from '../../hooks/usePayments';
+import { Card } from '../ui/Card';
+import { cn } from '../../lib/utils';
 
 type Props = {
   depositId: string;
   onComplete?: () => void;
 };
+
+function statusMessage(status: string | undefined) {
+  switch (status) {
+    case 'COMPLETED':
+      return 'Payment completed! You can now download your track.';
+    case 'FAILED':
+      return 'Payment failed. Please try again.';
+    default:
+      return 'Waiting for payment confirmation...';
+  }
+}
+
+function statusTextClass(status: string | undefined) {
+  switch (status) {
+    case 'COMPLETED':
+      return 'text-ink';
+    case 'FAILED':
+      return 'text-error';
+    default:
+      return 'text-muted';
+  }
+}
 
 export function PaymentStatusPanel({ depositId, onComplete }: Props) {
   const { data } = usePaymentStatus(depositId, true);
@@ -14,26 +38,15 @@ export function PaymentStatusPanel({ depositId, onComplete }: Props) {
     if (status === 'COMPLETED') onComplete?.();
   }, [status, onComplete]);
 
-  if (status === 'COMPLETED') {
-    return (
-      <div className="rounded-lg bg-green-900/30 border border-green-700 p-4 text-green-300">
-        Payment completed! You can now download your track.
-      </div>
-    );
-  }
-
-  if (status === 'FAILED') {
-    return (
-      <div className="rounded-lg bg-red-900/30 border border-red-700 p-4 text-red-300">
-        Payment failed. Please try again.
-      </div>
-    );
-  }
-
   return (
-    <div className="rounded-lg bg-indigo-900/30 border border-indigo-700 p-4 text-cream">
-      <p className="font-medium">Waiting for payment confirmation...</p>
-      <p className="text-sm text-cream/60 mt-1">Status: {status ?? 'PENDING'}</p>
-    </div>
+    <Card className={cn(status === 'FAILED' && 'border-error/30')}>
+      <p className={cn('font-semibold', statusTextClass(status))}>{statusMessage(status)}</p>
+      <p className={cn('mt-1 text-sm', statusTextClass(status))}>
+        Status: {status ?? 'PENDING'}
+      </p>
+      {depositId && (
+        <p className="mt-2 text-xs text-muted-soft">Reference: {depositId}</p>
+      )}
+    </Card>
   );
 }

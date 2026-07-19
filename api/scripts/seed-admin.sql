@@ -4,4 +4,4 @@
 
 UPDATE users
 SET role = 'ADMIN'
-WHERE email = 'admin@ngoma.test';
+WHERE email = 'lufegoh@mailinator.com';

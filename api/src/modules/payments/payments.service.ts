@@ -54,8 +54,16 @@ export class PaymentsService {
       where: { id: dto.itemId, isPublished: true, isActive: true },
     });
     if (!track) throw new NotFoundException('Track not found');
-    if (track.pricingType !== PricingType.SET_PRICE) {
+    if (track.pricingType === PricingType.FREE) {
       throw new BadRequestException('Track is free');
+    }
+    if (track.pricingType === PricingType.PAY_WHAT_YOU_WANT) {
+      const min = Number(track.minPrice ?? 0);
+      if (!track.minPrice || dto.amount < min) {
+        throw new BadRequestException(`Amount must be at least ZMW ${min.toFixed(2)}`);
+      }
+    } else if (track.pricingType !== PricingType.SET_PRICE) {
+      throw new BadRequestException('Track is not available for purchase');
     }
 
     const existing = await this.accessRepo.findOne({

@@ -1,4 +1,5 @@
 import type { AdminUser } from '../../hooks/useAdmin';
+import { Button } from '../ui/Button';
 
 type Props = {
   users: AdminUser[];
@@ -7,10 +8,16 @@ type Props = {
 };
 
 export function UserTable({ users, onDeactivate, deactivatingId }: Props) {
+  if (users.length === 0) {
+    return (
+      <p className="py-8 text-center text-sm text-muted">No users found.</p>
+    );
+  }
+
   return (
-    <div className="overflow-x-auto rounded-lg border border-indigo-800/40">
-      <table className="w-full text-sm text-left text-cream">
-        <thead className="bg-indigo-950/50 text-cream/70 uppercase text-xs">
+    <div className="overflow-x-auto rounded-md border border-hairline">
+      <table className="w-full text-left text-sm text-ink">
+        <thead className="bg-surface-soft text-xs uppercase text-muted">
           <tr>
             <th className="px-4 py-3">Name</th>
             <th className="px-4 py-3">Email</th>
@@ -20,32 +27,33 @@ export function UserTable({ users, onDeactivate, deactivatingId }: Props) {
             <th className="px-4 py-3">Actions</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-hairline">
           {users.map((user) => (
-            <tr key={user.id} className="border-t border-indigo-800/30">
+            <tr key={user.id}>
               <td className="px-4 py-3">{user.fullName}</td>
-              <td className="px-4 py-3">{user.email}</td>
+              <td className="px-4 py-3 text-muted">{user.email}</td>
               <td className="px-4 py-3">{user.role}</td>
               <td className="px-4 py-3">
                 {user.isActive ? (
-                  <span className="text-green-400">Active</span>
+                  <span className="text-ink">Active</span>
                 ) : (
-                  <span className="text-red-400">Inactive</span>
+                  <span className="text-muted">Inactive</span>
                 )}
               </td>
-              <td className="px-4 py-3">
+              <td className="px-4 py-3 text-muted">
                 {new Date(user.createdAt).toLocaleDateString()}
               </td>
               <td className="px-4 py-3">
                 {user.isActive && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
+                    className="min-h-0 px-2 py-1 text-error hover:bg-surface-soft"
                     onClick={() => onDeactivate(user.id)}
                     disabled={deactivatingId === user.id}
-                    className="text-red-400 hover:underline disabled:opacity-50"
                   >
-                    {deactivatingId === user.id ? 'Deactivating...' : 'Deactivate'}
-                  </button>
+                    {deactivatingId === user.id ? 'Deactivating…' : 'Deactivate'}
+                  </Button>
                 )}
               </td>
             </tr>

@@ -37,6 +37,12 @@ export class UpdateTrackDto {
   @Min(0.01)
   price?: number;
 
+  @ValidateIf((o) => o.pricingType === PricingType.PAY_WHAT_YOU_WANT)
+  @IsOptional()
+  @IsNumber({ maxDecimalPlaces: 2 })
+  @Min(0.01)
+  minPrice?: number;
+
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;

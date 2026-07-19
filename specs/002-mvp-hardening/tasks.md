@@ -44,7 +44,7 @@
 
 **Goal**: Admin views paginated user list and deactivates accounts from the client
 
-**Independent Test**: Sign in as ADMIN → open `/admin/users` → deactivate test user → VS-101 in quickstart.md
+**Independent Test**: Sign in as ADMIN → open `/admin/users` → deactivate test user → deactivated user cannot log in → VS-101 in quickstart.md
 
 ### Implementation for User Story 1
 
@@ -53,6 +53,7 @@
 - [X] T011 [US1] Build `AdminUsersPage` with pagination and role filter in `client/src/pages/AdminUsersPage.tsx`
 - [X] T012 [US1] Register `/admin/users` route with `AdminRoute` in `client/src/App.tsx`
 - [X] T013 [US1] Add admin dashboard link for ADMIN role in `client/src/pages/DashboardPage.tsx`
+- [X] T014 [US1] Reject login for deactivated users (`isActive=false`) in `api/src/modules/auth/auth.service.ts`
 
 **Checkpoint**: US1 complete — admin manages users without Swagger (VS-101)
 
@@ -66,12 +67,12 @@
 
 ### Implementation for User Story 2
 
-- [X] T014 [P] [US2] Create `parseAudioDuration` helper in `api/src/modules/media/audio-metadata.util.ts` using `music-metadata`
-- [X] T015 [US2] Return parsed duration from `MediaService.saveAudio` in `api/src/modules/media/media.service.ts`
-- [X] T016 [US2] Persist `duration` in `TracksService.uploadFiles` in `api/src/modules/tracks/tracks.service.ts`
-- [X] T017 [P] [US2] Create `formatDuration(seconds)` util in `client/src/lib/format-duration.ts` (mm:ss)
-- [X] T018 [US2] Display duration on track cards in `client/src/pages/DiscoverPage.tsx`
-- [X] T019 [US2] Display duration on track detail in `client/src/pages/TrackPage.tsx`
+- [X] T015 [P] [US2] Create `parseAudioDuration` helper in `api/src/modules/media/audio-metadata.util.ts` using `music-metadata`
+- [X] T016 [US2] Return parsed duration from `MediaService.saveAudio` in `api/src/modules/media/media.service.ts`
+- [X] T017 [US2] Persist `duration` in `TracksService.uploadFiles` in `api/src/modules/tracks/tracks.service.ts`
+- [X] T018 [P] [US2] Create `formatDuration(seconds)` util in `client/src/lib/format-duration.ts` (mm:ss)
+- [X] T019 [US2] Display duration on track cards in `client/src/pages/DiscoverPage.tsx`
+- [X] T020 [US2] Display duration on track detail in `client/src/pages/TrackPage.tsx`
 
 **Checkpoint**: US2 complete — duration extracted and visible (VS-102)
 
@@ -85,11 +86,11 @@
 
 ### Implementation for User Story 3
 
-- [X] T020 [US3] Add `syncSearchVector(trackId)` in `api/src/modules/tracks/tracks.service.ts` (title + genre + artist name → tsvector)
-- [X] T021 [US3] Call `syncSearchVector` on track create, update, and publish in `api/src/modules/tracks/tracks.service.ts`
-- [X] T022 [US3] Replace ILIKE search with `plainto_tsquery` + `ts_rank` in `api/src/modules/discovery/discovery.service.ts` per contracts/discovery.md
-- [X] T023 [US3] Return 400 when `q` is missing or empty in `api/src/modules/discovery/discovery.controller.ts`
-- [X] T024 [US3] Sanitize FTS query input (strip/skip invalid `plainto_tsquery` tokens) in `discovery.service.ts`
+- [X] T021 [US3] Add `syncSearchVector(trackId)` in `api/src/modules/tracks/tracks.service.ts` (title + genre + artist name → tsvector)
+- [X] T022 [US3] Call `syncSearchVector` on track create, update, and publish in `api/src/modules/tracks/tracks.service.ts`
+- [X] T023 [US3] Replace ILIKE search with `plainto_tsquery` + `ts_rank` in `api/src/modules/discovery/discovery.service.ts` per contracts/discovery.md
+- [X] T024 [US3] Return 400 when `q` is missing or empty in `api/src/modules/discovery/discovery.service.ts`
+- [X] T025 [US3] Sanitize FTS query input (strip invalid `plainto_tsquery` tokens) in `api/src/modules/discovery/discovery.service.ts`
 
 **Checkpoint**: US3 complete — FTS search ranked and validated (VS-103)
 
@@ -103,10 +104,10 @@
 
 ### Implementation for User Story 4
 
-- [X] T025 [P] [US4] Confirm Postgres host port `5433:5432` in `docker-compose.yml` and document in `specs/001-platform-mvp/quickstart.md`
-- [X] T026 [P] [US4] Update `specs/001-platform-mvp/quickstart.md` troubleshooting for API port conflicts and vite proxy alignment
-- [X] T027 [US4] Add proxy port comment in `client/vite.config.ts` referencing `api/.env` `PORT` value
-- [X] T028 [US4] Cross-link `specs/002-mvp-hardening/quickstart.md` admin bootstrap steps with `api/scripts/seed-admin.sql`
+- [X] T026 [P] [US4] Confirm Postgres host port `5433:5432` in `docker-compose.yml` and document in `specs/001-platform-mvp/quickstart.md`
+- [X] T027 [P] [US4] Update `specs/001-platform-mvp/quickstart.md` troubleshooting for API port conflicts and vite proxy alignment
+- [X] T028 [US4] Add proxy port comment in `client/vite.config.ts` referencing `api/.env` `PORT` value
+- [X] T029 [US4] Cross-link `specs/002-mvp-hardening/quickstart.md` admin bootstrap steps with `api/scripts/seed-admin.sql`
 
 **Checkpoint**: US4 complete — onboarding docs match real dev setup (VS-104)
 
@@ -116,9 +117,9 @@
 
 **Purpose**: Lint, validation, and regression pass
 
-- [X] T029 Run `yarn lint` in `api/` and `client/` workspaces and fix blocking issues
-- [X] T030 Validate VS-101 through VS-104 in `specs/002-mvp-hardening/quickstart.md`
-- [X] T031 Re-run VS-1 through VS-5 from `specs/001-platform-mvp/quickstart.md` and note results in `specs/002-mvp-hardening/quickstart.md`
+- [X] T030 Run `yarn lint` in `api/` and `client/` workspaces and fix blocking issues
+- [X] T031 Validate VS-101 through VS-104 in `specs/002-mvp-hardening/quickstart.md`
+- [X] T032 Re-run VS-1 through VS-5 from `specs/001-platform-mvp/quickstart.md` and note results in `specs/002-mvp-hardening/quickstart.md`
 
 ---
 
@@ -171,8 +172,8 @@ T010 UserTable.tsx
 
 ### US2 parallel batch
 ```bash
-T014 audio-metadata.util.ts
-T017 format-duration.ts
+T015 audio-metadata.util.ts
+T018 format-duration.ts
 ```
 
 ### US3 + US2 overlap
@@ -180,8 +181,8 @@ US2 (Phase 4) and US3 (Phase 5) can run in parallel after Phase 2 if different d
 
 ### US4 parallel batch
 ```bash
-T025 docker-compose.yml
-T026 001 quickstart update
+T026 docker-compose.yml
+T027 001 quickstart update
 ```
 
 ---
@@ -189,9 +190,9 @@ T026 001 quickstart update
 ## Parallel Example: User Story 2
 
 ```bash
-T014 parseAudioDuration util
-T017 formatDuration client util
-# Then sequential: T015 → T016 → T018 → T019
+T015 parseAudioDuration util
+T018 formatDuration client util
+# Then sequential: T016 → T017 → T019 → T020
 ```
 
 ---
@@ -217,11 +218,11 @@ T017 formatDuration client util
 
 ### Suggested MVP Scope
 
-**Minimum shippable increment**: Phases 1–3 (Setup + Foundational + US1) — **13 tasks**
+**Minimum shippable increment**: Phases 1–3 (Setup + Foundational + US1) — **14 tasks**
 
-**Full hardening (all four stories)**: Phases 1–6 — **28 tasks**
+**Full hardening (all four stories)**: Phases 1–6 — **29 tasks**
 
-**Production-ready pass**: All phases — **31 tasks**
+**Production-ready pass**: All phases — **32 tasks**
 
 ---
 

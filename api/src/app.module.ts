@@ -18,6 +18,7 @@ import { MediaModule } from './modules/media/media.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { DiscoveryModule } from './modules/discovery/discovery.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { AdminModule } from './modules/admin/admin.module';
     PaymentsModule,
     DiscoveryModule,
     AdminModule,
+    AnalyticsModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AppThrottlerGuard },

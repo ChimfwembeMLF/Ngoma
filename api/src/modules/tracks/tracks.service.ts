@@ -34,10 +34,10 @@ export class TracksService {
       description: dto.description,
       albumId: dto.albumId,
       pricingType: dto.pricingType,
-      price: dto.pricingType === PricingType.SET_PRICE ? String(dto.price) : undefined,
       isDraft: true,
       isPublished: false,
     });
+    this.applyPricingFields(track, dto.pricingType, dto.price, dto.minPrice);
     const saved = await this.tracksRepo.save(track);
     await this.syncSearchVector(saved.id);
     return { success: true, data: saved };
@@ -111,17 +111,21 @@ export class TracksService {
 
   async update(artistId: string, id: string, dto: UpdateTrackDto) {
     const track = await this.getOwnedTrack(artistId, id);
-    Object.assign(track, {
-      ...dto,
-      price: dto.pricingType === PricingType.SET_PRICE && dto.price != null
-        ? String(dto.price)
-        : dto.pricingType === PricingType.FREE
-          ? undefined
-          : track.price,
-    });
+    const { pricingType, price, minPrice, ...rest } = dto;
+    Object.assign(track, rest);
+    if (pricingType != null) {
+      this.applyPricingFields(track, pricingType, price, minPrice);
+    } else if (price != null && track.pricingType === PricingType.SET_PRICE) {
+      track.price = String(price);
+    } else if (minPrice != null && track.pricingType === PricingType.PAY_WHAT_YOU_WANT) {
+      track.minPrice = String(minPrice);
+    }
     if (dto.isPublished === true) {
       if (!track.audioFileUrl) {
         throw new ForbiddenException('Upload audio before publishing');
+      }
+      if (track.pricingType === PricingType.PAY_WHAT_YOU_WANT && !track.minPrice) {
+        throw new ForbiddenException('Set minimum price before publishing PWYW track');
       }
       track.isDraft = false;
       track.isPublished = true;
@@ -238,6 +242,25 @@ export class TracksService {
     return new StreamableFile(stream, { type, disposition: headers['Content-Disposition'] });
   }
 
+  private applyPricingFields(
+    track: Track,
+    pricingType: PricingType,
+    price?: number,
+    minPrice?: number,
+  ) {
+    track.pricingType = pricingType;
+    if (pricingType === PricingType.SET_PRICE) {
+      track.price = price != null ? String(price) : track.price;
+      track.minPrice = undefined;
+    } else if (pricingType === PricingType.PAY_WHAT_YOU_WANT) {
+      track.price = undefined;
+      track.minPrice = minPrice != null ? String(minPrice) : track.minPrice;
+    } else {
+      track.price = undefined;
+      track.minPrice = undefined;
+    }
+  }
+
   private toPublicTrack(track: Track & { artist?: Artist }) {
     return {
       id: track.id,
@@ -246,6 +269,7 @@ export class TracksService {
       genre: track.genre,
       pricingType: track.pricingType,
       price: track.price ? Number(track.price) : null,
+      minPrice: track.minPrice ? Number(track.minPrice) : null,
       coverArtUrl: track.coverArtUrl,
       duration: track.duration,
       artistId: track.artistId,

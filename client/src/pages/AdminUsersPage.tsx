@@ -2,8 +2,17 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAdminUsers, useDeactivateUser } from '../hooks/useAdmin';
 import { UserTable } from '../components/admin/UserTable';
+import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
+import { Card } from '../components/ui/Card';
+import { Button, buttonVariants } from '../components/ui/Button';
+import { cn } from '../lib/utils';
 
 const PAGE_SIZE = 20;
+
+const selectClassName = cn(
+  'min-h-[44px] rounded-sm border border-hairline bg-canvas px-3 py-2 text-base text-ink',
+  'focus:border-border-strong focus:outline-none focus:ring-2 focus:ring-primary/20',
+);
 
 export function AdminUsersPage() {
   const [offset, setOffset] = useState(0);
@@ -19,17 +28,21 @@ export function AdminUsersPage() {
   const total = data?.pagination.total ?? 0;
 
   return (
-    <div className="max-w-6xl mx-auto p-8">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-cream">Admin — Users</h1>
-        <Link to="/dashboard" className="text-terracotta text-sm hover:underline">
-          ← Dashboard
+    <DesignSystemLayout maxWidth="6xl">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-[22px] font-medium text-ink">Admin — Users</h1>
+        <Link to="/dashboard" className={buttonVariants('outline')}>
+          Back to dashboard
         </Link>
       </div>
 
-      <div className="flex gap-3 mb-6">
+      <div className="mb-6">
+        <label htmlFor="role-filter" className="mb-1 block text-sm font-medium text-ink">
+          Filter by role
+        </label>
         <select
-          className="rounded-lg bg-indigo-950 border border-indigo-700 px-3 py-2 text-cream"
+          id="role-filter"
+          className={selectClassName}
           value={role}
           onChange={(e) => {
             setRole(e.target.value);
@@ -43,8 +56,13 @@ export function AdminUsersPage() {
         </select>
       </div>
 
-      {isLoading && <p className="text-cream/70">Loading users...</p>}
-      {error && <p className="text-red-400">Failed to load users</p>}
+      {isLoading && <p className="text-sm text-muted">Loading users…</p>}
+
+      {error && (
+        <Card className="border-error/30 bg-surface-soft">
+          <p className="text-sm text-error">Failed to load users</p>
+        </Card>
+      )}
 
       {!isLoading && !error && (
         <>
@@ -53,31 +71,31 @@ export function AdminUsersPage() {
             onDeactivate={(id) => deactivate.mutate(id)}
             deactivatingId={deactivate.isPending ? deactivate.variables : undefined}
           />
-          <div className="flex items-center justify-between mt-4 text-cream/70 text-sm">
-            <span>
-              Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <span className="text-sm text-muted">
+              Showing {total === 0 ? 0 : offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
             </span>
             <div className="flex gap-2">
-              <button
+              <Button
                 type="button"
+                variant="outline"
                 disabled={offset === 0}
                 onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-                className="px-3 py-1 rounded border border-indigo-600 disabled:opacity-40"
               >
                 Previous
-              </button>
-              <button
+              </Button>
+              <Button
                 type="button"
+                variant="outline"
                 disabled={offset + PAGE_SIZE >= total}
                 onClick={() => setOffset(offset + PAGE_SIZE)}
-                className="px-3 py-1 rounded border border-indigo-600 disabled:opacity-40"
               >
                 Next
-              </button>
+              </Button>
             </div>
           </div>
         </>
       )}
-    </div>
+    </DesignSystemLayout>
   );
 }

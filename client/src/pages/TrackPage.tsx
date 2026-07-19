@@ -4,6 +4,8 @@ import { useTrack } from '../hooks/useTracks';
 import { AudioPlayer } from '../components/player/AudioPlayer';
 import { formatDuration } from '../lib/format-duration';
 import { getAccessToken } from '../lib/auth-storage';
+import { DesignSystemLayout } from '../components/layout/DesignSystemLayout';
+import { Button, buttonVariants } from '../components/ui/Button';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -13,11 +15,25 @@ export function TrackPage() {
   const track = data?.data;
   const [downloading, setDownloading] = useState(false);
 
-  if (isLoading) return <div className="p-8 text-cream">Loading...</div>;
-  if (!track) return <div className="p-8 text-cream">Track not found</div>;
+  if (isLoading) {
+    return (
+      <DesignSystemLayout maxWidth="2xl">
+        <p className="text-muted">Loading…</p>
+      </DesignSystemLayout>
+    );
+  }
+
+  if (!track) {
+    return (
+      <DesignSystemLayout maxWidth="2xl">
+        <p className="text-muted">Track not found</p>
+      </DesignSystemLayout>
+    );
+  }
 
   const streamUrl = `${baseUrl}/api/v1/tracks/${track.id}/stream`;
-  const isPaid = track.pricingType === 'SET_PRICE';
+  const isPaid =
+    track.pricingType === 'SET_PRICE' || track.pricingType === 'PAY_WHAT_YOU_WANT';
   const isLoggedIn = !!getAccessToken();
 
   const download = async () => {
@@ -42,58 +58,62 @@ export function TrackPage() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto p-8 space-y-6">
-      <Link to="/discover" className="text-terracotta text-sm hover:underline">
-        ← Back to discover
-      </Link>
-      <div>
-        <h1 className="text-3xl font-bold text-cream">{track.title}</h1>
-        <p className="text-cream/70">{track.artistName}</p>
-        <p className="text-cream/60 text-sm mt-1">{track.genre}</p>
-        {track.duration != null && track.duration > 0 && (
-          <p className="text-cream/50 text-sm">{formatDuration(track.duration)}</p>
-        )}
-      </div>
+    <DesignSystemLayout maxWidth="2xl">
+      <div className="space-y-6">
+        <Link to="/discover" className={buttonVariants('ghost', 'px-0 text-sm text-muted hover:text-ink')}>
+          ← Back to discover
+        </Link>
 
-      <AudioPlayer src={streamUrl} title={track.title} artistName={track.artistName} />
+        <div className="flex flex-col gap-6 sm:flex-row">
+          <div className="aspect-square w-full max-w-xs shrink-0 overflow-hidden rounded-md bg-surface-soft">
+            {track.coverArtUrl ? (
+              <img src={track.coverArtUrl} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-muted-soft">No cover</div>
+            )}
+          </div>
+          <div className="flex-1">
+            <h1 className="text-[22px] font-medium leading-tight text-ink">{track.title}</h1>
+            <p className="mt-1 text-base text-muted">{track.artistName}</p>
+            {track.genre && <p className="mt-1 text-sm text-muted">{track.genre}</p>}
+            {track.duration != null && track.duration > 0 && (
+              <p className="mt-1 text-sm text-muted-soft">{formatDuration(track.duration)}</p>
+            )}
+          </div>
+        </div>
 
-      <div className="flex gap-3">
-        {isPaid ? (
-          isLoggedIn ? (
-            <>
-              <Link
-                to={`/checkout/${track.id}`}
-                className="px-4 py-2 rounded-lg bg-terracotta text-white"
-              >
-                Buy · ZMW {track.price}
+        <AudioPlayer src={streamUrl} title={track.title} artistName={track.artistName} />
+
+        <div className="flex flex-wrap gap-3">
+          {isPaid ? (
+            isLoggedIn ? (
+              <>
+                <Link
+                  to={`/checkout/${track.id}`}
+                  className={buttonVariants('primary')}
+                >
+                  {track.pricingType === 'PAY_WHAT_YOU_WANT'
+                    ? `Pay what you want · from ZMW ${track.minPrice ?? 0}`
+                    : `Buy · ZMW ${track.price}`}
+                </Link>
+                <Button variant="outline" onClick={download} disabled={downloading}>
+                  {downloading ? 'Downloading…' : 'Download'}
+                </Button>
+              </>
+            ) : (
+              <Link to="/auth" className={buttonVariants('primary')}>
+                Sign in to buy
               </Link>
-              <button
-                type="button"
-                onClick={download}
-                disabled={downloading}
-                className="px-4 py-2 rounded-lg border border-indigo-600 text-cream"
-              >
-                {downloading ? 'Downloading...' : 'Download'}
-              </button>
-            </>
+            )
           ) : (
-            <Link to="/auth" className="px-4 py-2 rounded-lg bg-terracotta text-white">
-              Sign in to buy
-            </Link>
-          )
-        ) : (
-          isLoggedIn && (
-            <button
-              type="button"
-              onClick={download}
-              disabled={downloading}
-              className="px-4 py-2 rounded-lg border border-indigo-600 text-cream"
-            >
-              {downloading ? 'Downloading...' : 'Download free'}
-            </button>
-          )
-        )}
+            isLoggedIn && (
+              <Button variant="outline" onClick={download} disabled={downloading}>
+                {downloading ? 'Downloading…' : 'Download free'}
+              </Button>
+            )
+          )}
+        </div>
       </div>
-    </div>
+    </DesignSystemLayout>
   );
 }

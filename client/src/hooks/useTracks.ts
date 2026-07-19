@@ -1,13 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, apiUpload } from '../lib/api-client';
 
+export type PricingType = 'SET_PRICE' | 'PAY_WHAT_YOU_WANT' | 'FREE';
+
 export type Track = {
   id: string;
   title: string;
   genre: string;
   description?: string;
-  pricingType: 'SET_PRICE' | 'FREE';
+  pricingType: PricingType;
   price?: number | null;
+  minPrice?: number | null;
   coverArtUrl?: string;
   audioFileUrl?: string;
   isPublished?: boolean;
@@ -31,8 +34,9 @@ export function useCreateTrack() {
     mutationFn: (body: {
       title: string;
       genre: string;
-      pricingType: 'SET_PRICE' | 'FREE';
+      pricingType: PricingType;
       price?: number;
+      minPrice?: number;
       description?: string;
     }) =>
       apiFetch<{ success: boolean; data: Track }>('/api/v1/tracks', {
@@ -46,7 +50,16 @@ export function useCreateTrack() {
 export function useUpdateTrack() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...body }: { id: string; isPublished?: boolean; price?: number }) =>
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string;
+      isPublished?: boolean;
+      price?: number;
+      minPrice?: number;
+      pricingType?: PricingType;
+    }) =>
       apiFetch(`/api/v1/tracks/${id}`, {
         method: 'PUT',
         body: JSON.stringify(body),

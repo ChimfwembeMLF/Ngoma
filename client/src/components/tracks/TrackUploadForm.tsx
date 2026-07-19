@@ -1,5 +1,19 @@
 import { useState } from 'react';
-import { useCreateTrack, useUploadTrackFiles, useUpdateTrack } from '../../hooks/useTracks';
+import {
+  useCreateTrack,
+  useUploadTrackFiles,
+  useUpdateTrack,
+  type PricingType,
+} from '../../hooks/useTracks';
+import { Card } from '../ui/Card';
+import { Input } from '../ui/Input';
+import { Button } from '../ui/Button';
+
+const PRICING_OPTIONS: { value: PricingType; label: string }[] = [
+  { value: 'SET_PRICE', label: 'Set price' },
+  { value: 'PAY_WHAT_YOU_WANT', label: 'Pay what you want' },
+  { value: 'FREE', label: 'Free' },
+];
 
 export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const createTrack = useCreateTrack();
@@ -7,19 +21,27 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   const updateTrack = useUpdateTrack();
   const [title, setTitle] = useState('');
   const [genre, setGenre] = useState('Afrobeats');
+  const [pricingType, setPricingType] = useState<PricingType>('SET_PRICE');
   const [price, setPrice] = useState('10');
+  const [minPrice, setMinPrice] = useState('1');
   const [audio, setAudio] = useState<File | null>(null);
   const [error, setError] = useState('');
 
   const submit = async (publish: boolean) => {
     setError('');
     try {
-      const result = await createTrack.mutateAsync({
+      const body: Parameters<typeof createTrack.mutateAsync>[0] = {
         title,
         genre,
-        pricingType: 'SET_PRICE',
-        price: Number(price),
-      });
+        pricingType,
+      };
+      if (pricingType === 'SET_PRICE') {
+        body.price = Number(price);
+      } else if (pricingType === 'PAY_WHAT_YOU_WANT') {
+        body.minPrice = Number(minPrice);
+      }
+
+      const result = await createTrack.mutateAsync(body);
       const trackId = result.data.id;
       if (audio) {
         await uploadFiles.mutateAsync({ id: trackId, audio });
@@ -36,54 +58,95 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
   };
 
   return (
-    <div className="rounded-xl border border-indigo-800/40 bg-indigo-950/30 p-6 space-y-4">
-      <h3 className="text-lg font-semibold text-cream">Upload track</h3>
-      {error && <p className="text-red-400 text-sm">{error}</p>}
-      <input
-        className="w-full rounded-lg bg-indigo-950 border border-indigo-700 px-3 py-2 text-cream"
+    <Card className="space-y-4">
+      <h3 className="text-base font-semibold text-ink">Upload track</h3>
+      {error && <p className="text-sm text-error">{error}</p>}
+      <Input
+        label="Track title"
         placeholder="Track title"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
       />
-      <input
-        className="w-full rounded-lg bg-indigo-950 border border-indigo-700 px-3 py-2 text-cream"
+      <Input
+        label="Genre"
         placeholder="Genre"
         value={genre}
         onChange={(e) => setGenre(e.target.value)}
       />
-      <input
-        className="w-full rounded-lg bg-indigo-950 border border-indigo-700 px-3 py-2 text-cream"
-        type="number"
-        min="0.01"
-        step="0.01"
-        placeholder="Price (ZMW)"
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-      />
-      <input
-        type="file"
-        accept="audio/*"
-        onChange={(e) => setAudio(e.target.files?.[0] ?? null)}
-        className="text-cream text-sm"
-      />
-      <div className="flex gap-3">
-        <button
+
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium text-ink">Pricing</legend>
+        <div className="flex flex-wrap gap-4">
+          {PRICING_OPTIONS.map((option) => (
+            <label key={option.value} className="flex cursor-pointer items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="pricingType"
+                value={option.value}
+                checked={pricingType === option.value}
+                onChange={() => setPricingType(option.value)}
+                className="accent-primary"
+              />
+              <span className="text-ink">{option.label}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+
+      {pricingType === 'SET_PRICE' && (
+        <Input
+          label="Price (ZMW)"
+          type="number"
+          min="0.01"
+          step="0.01"
+          placeholder="Price (ZMW)"
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+        />
+      )}
+
+      {pricingType === 'PAY_WHAT_YOU_WANT' && (
+        <Input
+          label="Minimum price (ZMW)"
+          type="number"
+          min="0.01"
+          step="0.01"
+          placeholder="Minimum (ZMW)"
+          value={minPrice}
+          onChange={(e) => setMinPrice(e.target.value)}
+        />
+      )}
+
+      <div className="space-y-1">
+        <label htmlFor="track-audio" className="block text-sm font-medium text-ink">
+          Audio file
+        </label>
+        <input
+          id="track-audio"
+          type="file"
+          accept="audio/*"
+          onChange={(e) => setAudio(e.target.files?.[0] ?? null)}
+          className="w-full text-sm text-muted file:mr-3 file:rounded-sm file:border file:border-hairline file:bg-surface-soft file:px-3 file:py-2 file:text-sm file:text-ink"
+        />
+      </div>
+      <div className="flex flex-wrap gap-3">
+        <Button
           type="button"
+          variant="outline"
           onClick={() => submit(false)}
           disabled={!title || createTrack.isPending}
-          className="px-4 py-2 rounded-lg border border-indigo-600 text-cream"
         >
           Save draft
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="primary"
           onClick={() => submit(true)}
           disabled={!title || !audio || createTrack.isPending}
-          className="px-4 py-2 rounded-lg bg-terracotta text-white"
         >
           Publish
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }

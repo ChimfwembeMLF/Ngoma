@@ -8,6 +8,7 @@ export type DiscoveryTrack = {
   artistId?: string;
   coverArtUrl?: string;
   price?: number | null;
+  minPrice?: number | null;
   pricingType: string;
   genre: string;
   duration: number;

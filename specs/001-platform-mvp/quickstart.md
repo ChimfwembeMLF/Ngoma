@@ -42,7 +42,7 @@ cd api && yarn migrations:run
 
 ```bash
 # Terminal 1 — API
-yarn workspace custom-template-api dev
+yarn workspace @ngoma/api dev
 
 # Terminal 2 — Client
 yarn workspace @ngoma/client dev
@@ -92,7 +92,16 @@ API docs: http://localhost:4000/documentation
 | CORS errors | Vite proxy in `client/vite.config.ts` → port 4000 |
 | Migration fails | Postgres running; `DATABASE_URL` correct |
 | Payment stuck PENDING | Webhook URL; API logs for PawaPay events |
-| Upload fails | Supabase keys or local `api/uploads/` writable |
+| Upload fails | Local `api/uploads/` writable (default storage for MVP) |
+
+## Implementation gaps (2026-07-19)
+
+- **VS-3 sandbox without PawaPay token**: In `NODE_ENV=development` with no `PAWAPAY_API_TOKEN` / `PAWAPAY_SANDBOX_API_TOKEN`, deposits auto-complete for local testing.
+- **VS-3 with real token**: Requires valid PawaPay sandbox credentials and phone number; webhook must be reachable for production-like flow.
+- **Audio duration**: Not extracted from uploaded MP3 yet (`duration` stays 0).
+- **PostgreSQL FTS**: Search uses ILIKE fallback, not full-text search indexes.
+- **Admin UI**: Admin API exists (`/api/v1/admin/users`); no client admin page yet.
+- **Download auth from browser**: Paid downloads use authenticated `fetch` + blob (not direct link).
 
 ## Contract references
 

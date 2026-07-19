@@ -21,6 +21,8 @@ import { AdminModule } from './modules/admin/admin.module';
 import { PlatformModule } from './modules/platform/platform.module';
 import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { PlaylistsModule } from './modules/playlists/playlists.module';
+import { PayoutsModule } from './modules/payouts/payouts.module';
+import { VideosModule } from './modules/videos/videos.module';
 
 @Module({
   imports: [
@@ -51,6 +53,8 @@ import { PlaylistsModule } from './modules/playlists/playlists.module';
     PlatformModule,
     AnalyticsModule,
     PlaylistsModule,
+    PayoutsModule,
+    VideosModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AppThrottlerGuard },

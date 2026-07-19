@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTrack } from '@/hooks/useTracks';
 import { useInitiatePayment, usePaymentConfig, usePaymentOptions } from '@/hooks/usePayments';
 import { AppShell } from '@/components/layout/AppShell';
@@ -11,10 +12,12 @@ import {
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { buttonVariants } from '@/components/ui/button';
+import { FormWizard } from '@/components/forms';
 
 export function CheckoutPage() {
   const { trackId = '' } = useParams();
+  const queryClient = useQueryClient();
   const { data } = useTrack(trackId);
   const track = data?.data;
   const paymentConfig = usePaymentConfig();
@@ -27,8 +30,10 @@ export function CheckoutPage() {
   });
   const [amount, setAmount] = useState('');
   const [depositId, setDepositId] = useState<string | null>(null);
+  const [depositMessage, setDepositMessage] = useState<string | null>(null);
   const [paymentComplete, setPaymentComplete] = useState(false);
   const [error, setError] = useState('');
+  const [stepError, setStepError] = useState('');
 
   const pawapayEnabled = paymentConfig.data?.data.pawapayEnabled ?? true;
   const countries = options.data?.data.countries ?? [];
@@ -53,9 +58,12 @@ export function CheckoutPage() {
 
   const selectedCountry =
     countries.find((c) => c.id === mobileMoney.countryId) ?? countries[0];
+  const wholeAmountsOnly = selectedCountry?.decimalsInAmount === 'NONE';
+  const currencyLabel = selectedCountry?.currency ?? 'ZMW';
 
   const resetPayment = () => {
     setDepositId(null);
+    setDepositMessage(null);
     setPaymentComplete(false);
     setError('');
   };
@@ -68,7 +76,7 @@ export function CheckoutPage() {
     }
     const payAmount = Number(amount);
     if (isPwyw && payAmount < minAmount) {
-      setError(`Amount must be at least ZMW ${minAmount.toFixed(2)}`);
+      setError(`Amount must be at least ${currencyLabel} ${minAmount.toFixed(wholeAmountsOnly ? 0 : 2)}`);
       return;
     }
     setError('');
@@ -83,6 +91,7 @@ export function CheckoutPage() {
         phone: mobileMoney.phone,
       });
       setDepositId(result.data.depositId);
+      setDepositMessage(result.data.message);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Payment failed');
     }
@@ -100,6 +109,71 @@ export function CheckoutPage() {
     ? `Pay what you want · minimum ZMW ${track.minPrice ?? 0}`
     : `ZMW ${track.price}`;
 
+  const buySteps = [
+    {
+      id: 'track',
+      label: 'Track',
+      validate: () => {
+        const payAmount = Number(amount);
+        if (isPwyw && payAmount < minAmount) {
+          setStepError(`Amount must be at least ${currencyLabel} ${minAmount.toFixed(wholeAmountsOnly ? 0 : 2)}`);
+          return false;
+        }
+        setStepError('');
+        return true;
+      },
+      content: (
+        <div className="space-y-4">
+          <Card className="p-4">
+            <div className="font-semibold text-foreground">{track.title}</div>
+            <div className="text-sm text-muted-foreground">{priceSummary}</div>
+          </Card>
+          {isPwyw && (
+            <div className="space-y-2">
+              <Label htmlFor="amount">Your amount ({currencyLabel})</Label>
+              <Input
+                id="amount"
+                type="number"
+                min={String(minAmount)}
+                step={wholeAmountsOnly ? '1' : '0.01'}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+              />
+              {wholeAmountsOnly && (
+                <p className="text-xs text-muted-foreground">Whole amounts only</p>
+              )}
+            </div>
+          )}
+          {!isPwyw && (
+            <p className="text-sm text-muted-foreground">
+              Total: {currencyLabel} {Number(amount).toFixed(wholeAmountsOnly ? 0 : 2)}
+            </p>
+          )}
+        </div>
+      ),
+    },
+    {
+      id: 'pay',
+      label: 'Pay',
+      content: (
+        <div className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Pay {currencyLabel} {Number(amount).toFixed(wholeAmountsOnly ? 0 : 2)} for{' '}
+            <strong>{track.title}</strong>
+          </p>
+          <MobileMoneyForm
+            countries={countries}
+            defaultCountryId={defaultCountryId}
+            pawapayEnabled={pawapayEnabled}
+            value={mobileMoney}
+            onChange={setMobileMoney}
+            disabled={initiate.isPending}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppShell maxWidth="md">
       <div className="space-y-6">
@@ -110,60 +184,43 @@ export function CheckoutPage() {
           ← Back to track
         </Link>
 
-        <h1 className="text-[22px] font-medium text-foreground">Checkout</h1>
+        <h1 className="text-[22px] font-medium text-foreground">Buy track</h1>
+        <p className="text-sm text-muted-foreground">
+          Complete your purchase with mobile money
+        </p>
 
-        <Card className="p-6">
-          <div className="font-semibold text-foreground">{track.title}</div>
-          <div className="text-sm text-muted-foreground">{priceSummary}</div>
-        </Card>
-
-        {error && <p className="text-sm text-destructive">{error}</p>}
+        {(error || stepError) && (
+          <p className="text-sm text-destructive">{error || stepError}</p>
+        )}
 
         {!depositId ? (
-          <div className="space-y-6">
-            {isPwyw && (
-              <div className="space-y-2">
-                <Label htmlFor="amount">Your amount (ZMW)</Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  min={String(minAmount)}
-                  step="0.01"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                />
-              </div>
-            )}
-            <MobileMoneyForm
-              countries={countries}
-              defaultCountryId={defaultCountryId}
-              pawapayEnabled={pawapayEnabled}
-              value={mobileMoney}
-              onChange={setMobileMoney}
-              disabled={initiate.isPending}
+          <Card className="p-6">
+            <FormWizard
+              steps={buySteps}
+              onComplete={pay}
+              completeLabel="Pay now"
+              isSubmitting={initiate.isPending}
             />
-            <Button
-              type="button"
-              variant="default"
-              className="w-full"
-              onClick={pay}
-              disabled={!mobileMoney.operatorId || initiate.isPending}
-            >
-              Pay with mobile money
-            </Button>
-          </div>
+          </Card>
         ) : (
           <div className="space-y-4">
             <PaymentStatusPanel
               depositId={depositId}
-              onComplete={() => setPaymentComplete(true)}
+              pendingMessage={depositMessage ?? undefined}
+              onComplete={() => {
+                setPaymentComplete(true);
+                queryClient.invalidateQueries({ queryKey: ['track', trackId] });
+              }}
               onRetry={resetPayment}
-              completedMessage="Payment completed! You can now download your track."
+              completedMessage="Purchase complete! You can now download your track."
             />
             {paymentComplete && (
               <Link
                 to={`/tracks/${track.id}`}
-                className={buttonVariants({ variant: 'default', className: 'inline-flex w-full justify-center' })}
+                className={buttonVariants({
+                  variant: 'default',
+                  className: 'inline-flex w-full justify-center',
+                })}
               >
                 Go to track & download
               </Link>

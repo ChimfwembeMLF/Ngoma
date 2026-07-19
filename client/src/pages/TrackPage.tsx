@@ -1,11 +1,13 @@
 import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
 import { useTrack } from '@/hooks/useTracks';
+import { useArtistVideos } from '@/hooks/useVideos';
 import { useAddTrackToPlaylist, useMyPlaylists } from '@/hooks/usePlaylists';
 import { AudioPlayer } from '@/components/player/AudioPlayer';
 import { formatDuration } from '@/lib/format-duration';
 import { getAccessToken } from '@/lib/auth-storage';
 import { AppShell } from '@/components/layout/AppShell';
+import { VideoCard } from '@/components/videos/VideoCard';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import {
@@ -22,7 +24,10 @@ export function TrackPage() {
   const { id = '' } = useParams();
   const { data, isLoading } = useTrack(id);
   const track = data?.data;
+  const artistVideos = useArtistVideos(track?.artistId);
+  const artistVideoList = artistVideos.data?.data ?? [];
   const [downloading, setDownloading] = useState(false);
+  const [downloadError, setDownloadError] = useState('');
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
   const [addMessage, setAddMessage] = useState('');
   const isLoggedIn = !!getAccessToken();
@@ -49,6 +54,7 @@ export function TrackPage() {
   const streamUrl = `${baseUrl}/api/v1/tracks/${track.id}/stream`;
   const isPaid =
     track.pricingType === 'SET_PRICE' || track.pricingType === 'PAY_WHAT_YOU_WANT';
+  const canDownload = track.canDownload === true;
 
   const addTrackToPlaylist = async () => {
     if (!selectedPlaylistId) return;
@@ -65,11 +71,19 @@ export function TrackPage() {
     const token = getAccessToken();
     if (!token) return;
     setDownloading(true);
+    setDownloadError('');
     try {
       const res = await fetch(`${baseUrl}/api/v1/tracks/${track.id}/download`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error('Download failed');
+      if (!res.ok) {
+        const contentType = res.headers.get('content-type') ?? '';
+        if (contentType.includes('application/json')) {
+          const body = (await res.json()) as { message?: string; error?: string };
+          throw new Error(body.message || body.error || 'Download failed');
+        }
+        throw new Error('Download failed');
+      }
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -77,6 +91,8 @@ export function TrackPage() {
       a.download = `${track.title}.mp3`;
       a.click();
       URL.revokeObjectURL(url);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Download failed');
     } finally {
       setDownloading(false);
     }
@@ -121,26 +137,37 @@ export function TrackPage() {
           {isPaid ? (
             isLoggedIn ? (
               <>
-                <Link to={`/checkout/${track.id}`} className={buttonVariants({ variant: 'default' })}>
-                  {track.pricingType === 'PAY_WHAT_YOU_WANT'
-                    ? `Pay what you want · from ZMW ${track.minPrice ?? 0}`
-                    : `Buy · ZMW ${track.price}`}
-                </Link>
-                <Button variant="outline" onClick={download} disabled={downloading}>
-                  {downloading ? 'Downloading…' : 'Download'}
-                </Button>
+                {!canDownload && (
+                  <Link
+                    to={`/checkout/${track.id}`}
+                    className={buttonVariants({ variant: 'default' })}
+                  >
+                    {track.pricingType === 'PAY_WHAT_YOU_WANT'
+                      ? `Pay what you want · from ZMW ${track.minPrice ?? 0}`
+                      : `Buy · ZMW ${track.price}`}
+                  </Link>
+                )}
+                {canDownload && (
+                  <Button variant="outline" onClick={download} disabled={downloading}>
+                    {downloading ? 'Downloading…' : 'Download'}
+                  </Button>
+                )}
               </>
             ) : (
               <Link to="/auth" className={buttonVariants({ variant: 'default' })}>
                 Sign in to buy
               </Link>
             )
-          ) : (
-            isLoggedIn && (
+          ) : isLoggedIn ? (
+            canDownload && (
               <Button variant="outline" onClick={download} disabled={downloading}>
                 {downloading ? 'Downloading…' : 'Download free'}
               </Button>
             )
+          ) : (
+            <Link to="/auth" className={buttonVariants({ variant: 'default' })}>
+              Sign in to download
+            </Link>
           )}
           {isLoggedIn && track.artistId && (
             <Link
@@ -151,6 +178,8 @@ export function TrackPage() {
             </Link>
           )}
         </div>
+
+        {downloadError && <p className="text-sm text-destructive">{downloadError}</p>}
 
         {isLoggedIn && (
           <div className="rounded-md border border-border bg-muted p-4">
@@ -196,6 +225,19 @@ export function TrackPage() {
               </p>
             )}
           </div>
+        )}
+
+        {track.artistId && !artistVideos.isLoading && artistVideoList.length > 0 && (
+          <section>
+            <h2 className="mb-4 text-base font-semibold text-foreground">
+              Videos from {track.artistName}
+            </h2>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {artistVideoList.map((video) => (
+                <VideoCard key={video.id} video={video} />
+              ))}
+            </div>
+          </section>
         )}
       </div>
     </AppShell>

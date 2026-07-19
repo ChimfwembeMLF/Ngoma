@@ -6,20 +6,34 @@ import { cn } from '@/lib/utils';
 
 type Props = {
   depositId: string;
+  pendingMessage?: string;
   onComplete?: () => void;
   onRetry?: () => void;
   completedMessage?: string;
 };
 
-function statusMessage(status: string | undefined, customCompleted?: string) {
-  switch (status) {
-    case 'COMPLETED':
-      return customCompleted ?? 'Payment completed!';
-    case 'FAILED':
-      return 'Payment failed. Please try again.';
-    default:
-      return 'Waiting for payment confirmation...';
+function isPendingStatus(status: string | undefined) {
+  return !status || status === 'PENDING' || status === 'INITIATED';
+}
+
+function statusMessage(
+  status: string | undefined,
+  options: {
+    completedMessage?: string;
+    pendingMessage?: string;
+    errorMessage?: string | null;
+  },
+) {
+  if (status === 'COMPLETED') {
+    return options.completedMessage ?? 'Payment completed!';
   }
+  if (status === 'FAILED') {
+    return (
+      options.errorMessage ??
+      'Payment did not go through. Approve the prompt on your phone or try again.'
+    );
+  }
+  return options.pendingMessage ?? 'Check your phone and approve the mobile money prompt.';
 }
 
 function statusTextClass(status: string | undefined) {
@@ -33,8 +47,22 @@ function statusTextClass(status: string | undefined) {
   }
 }
 
+function statusDetail(status: string | undefined) {
+  if (isPendingStatus(status)) {
+    return 'Waiting for confirmation on your phone…';
+  }
+  if (status === 'COMPLETED') {
+    return 'Payment confirmed';
+  }
+  if (status === 'FAILED') {
+    return 'Payment not completed';
+  }
+  return null;
+}
+
 export function PaymentStatusPanel({
   depositId,
+  pendingMessage,
   onComplete,
   onRetry,
   completedMessage,
@@ -42,6 +70,7 @@ export function PaymentStatusPanel({
   const { data } = usePaymentStatus(depositId, true);
   const status = data?.data.status;
   const errorMessage = data?.data.errorMessage;
+  const detail = statusDetail(status);
 
   useEffect(() => {
     if (status === 'COMPLETED') onComplete?.();
@@ -50,13 +79,10 @@ export function PaymentStatusPanel({
   return (
     <Card className={cn('p-6', status === 'FAILED' && 'border-destructive/30')}>
       <p className={cn('font-semibold', statusTextClass(status))}>
-        {statusMessage(status, completedMessage)}
+        {statusMessage(status, { completedMessage, pendingMessage, errorMessage })}
       </p>
-      <p className={cn('mt-1 text-sm', statusTextClass(status))}>
-        Status: {status ?? 'PENDING'}
-      </p>
-      {errorMessage && status === 'FAILED' && (
-        <p className="mt-2 text-sm text-destructive">{errorMessage}</p>
+      {detail && (
+        <p className={cn('mt-1 text-sm', statusTextClass(status))}>{detail}</p>
       )}
       {depositId && (
         <p className="mt-2 text-xs text-muted-foreground/80">Reference: {depositId}</p>

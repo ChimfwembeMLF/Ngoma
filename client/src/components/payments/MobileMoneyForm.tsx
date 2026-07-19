@@ -18,6 +18,7 @@ export type PaymentCountryOption = {
   currency: string;
   phonePlaceholder: string;
   enabled: boolean;
+  decimalsInAmount?: 'NONE' | 'TWO';
   operators: Array<{
     id: string;
     displayName: string;

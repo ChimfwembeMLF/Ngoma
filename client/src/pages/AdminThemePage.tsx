@@ -24,6 +24,12 @@ export function AdminThemePage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/admin" className={buttonVariants({ variant: 'outline' })}>
+            Overview
+          </Link>
+          <Link to="/admin/branding" className={buttonVariants({ variant: 'outline' })}>
+            Branding
+          </Link>
           <Link to="/admin/users" className={buttonVariants({ variant: 'outline' })}>
             Users
           </Link>

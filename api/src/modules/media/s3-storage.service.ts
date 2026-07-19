@@ -189,6 +189,10 @@ export class S3StorageService {
         return 'image/png';
       case '.webp':
         return 'image/webp';
+      case '.mp4':
+        return 'video/mp4';
+      case '.webm':
+        return 'video/webm';
       default:
         return 'application/octet-stream';
     }

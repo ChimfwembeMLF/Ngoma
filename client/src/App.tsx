@@ -12,10 +12,15 @@ import { PlaylistsPage } from './pages/PlaylistsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
 import { PurchaseHistoryPage } from './pages/PurchaseHistoryPage';
 import { AdminUsersPage } from './pages/AdminUsersPage';
+import { AdminOverviewPage } from './pages/AdminOverviewPage';
 import { AdminThemePage } from './pages/AdminThemePage';
+import { AdminBrandingPage } from './pages/AdminBrandingPage';
+import { AdminPayoutsPage } from './pages/AdminPayoutsPage';
+import { VideoPage } from './pages/VideoPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { BrandingProvider } from './providers/BrandingProvider';
 
 const queryClient = new QueryClient();
 
@@ -23,12 +28,14 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <BrandingProvider>
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/tracks/:id" element={<TrackPage />} />
+          <Route path="/videos/:id" element={<VideoPage />} />
           <Route path="/playlists/share/:slug" element={<PlaylistDetailPage />} />
           <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
           <Route
@@ -88,10 +95,34 @@ export default function App() {
             }
           />
           <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminOverviewPage />
+              </AdminRoute>
+            }
+          />
+          <Route
             path="/admin/users"
             element={
               <AdminRoute>
                 <AdminUsersPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/branding"
+            element={
+              <AdminRoute>
+                <AdminBrandingPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/payouts"
+            element={
+              <AdminRoute>
+                <AdminPayoutsPage />
               </AdminRoute>
             }
           />
@@ -105,6 +136,7 @@ export default function App() {
           />
         </Routes>
         </BrowserRouter>
+        </BrandingProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

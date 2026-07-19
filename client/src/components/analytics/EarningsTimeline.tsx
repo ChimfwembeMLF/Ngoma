@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
+import { MiniBarChart } from '@/components/dashboard/MiniBarChart';
 import { useEarningsTimeline } from '@/hooks/useAnalytics';
 import { cn } from '@/lib/utils';
 
@@ -9,6 +10,11 @@ function formatZmw(value: number): string {
 
 const DAY_OPTIONS = [7, 30, 90] as const;
 
+function formatBucketLabel(date: string, days: number): string {
+  if (days <= 7) return date.slice(5);
+  return date.slice(8);
+}
+
 export function EarningsTimeline() {
   const [days, setDays] = useState<number>(30);
   const { data, isLoading, error } = useEarningsTimeline(days);
@@ -16,14 +22,19 @@ export function EarningsTimeline() {
 
   if (error) {
     return (
-      <Card className="p-6 text-destructive">
-        <p className="text-sm">Could not load earnings timeline: {(error as Error).message}</p>
+      <Card className="text-destructive">
+        <CardContent>
+          <p className="text-sm">Could not load earnings timeline: {(error as Error).message}</p>
+        </CardContent>
       </Card>
     );
   }
 
   const buckets = timeline?.buckets ?? [];
-  const maxValue = Math.max(...buckets.map((bucket) => bucket.netEarnings), 0);
+  const chartBuckets = buckets.map((bucket) => ({
+    label: formatBucketLabel(bucket.date, days),
+    value: bucket.netEarnings,
+  }));
 
   return (
     <section>
@@ -56,28 +67,14 @@ export function EarningsTimeline() {
 
       {!isLoading && buckets.length > 0 && (
         <Card size="sm">
-          <ul className="space-y-2">
-            {buckets.map((bucket) => {
-              const width = maxValue > 0 ? (bucket.netEarnings / maxValue) * 100 : 0;
-              return (
-                <li key={bucket.date} className="grid grid-cols-[88px_1fr_96px] items-center gap-3">
-                  <span className="text-xs text-muted-foreground">{bucket.date}</span>
-                  <div className="h-2 rounded bg-border">
-                    <div
-                      className="h-2 rounded bg-primary"
-                      style={{ width: `${Math.max(width, bucket.netEarnings > 0 ? 4 : 0)}%` }}
-                    />
-                  </div>
-                  <span className="text-right text-sm text-foreground">{formatZmw(bucket.netEarnings)}</span>
-                </li>
-              );
-            })}
-          </ul>
-          {timeline && (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Total for period: {formatZmw(timeline.totalNetEarnings)}
-            </p>
-          )}
+          <CardContent>
+            <MiniBarChart buckets={chartBuckets} formatValue={formatZmw} />
+            {timeline && (
+              <p className="mt-4 text-sm text-muted-foreground">
+                Total for period: {formatZmw(timeline.totalNetEarnings)}
+              </p>
+            )}
+          </CardContent>
         </Card>
       )}
     </section>

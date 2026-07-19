@@ -8,9 +8,12 @@ import {
   Put,
   Query,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiBody, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { AdminService } from './admin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -22,6 +25,13 @@ import { UpdateCuratedPlaylistDto } from '../playlists/dto/update-curated-playli
 import { AddPlaylistTrackDto } from '../playlists/dto/add-playlist-track.dto';
 import { UpdateThemeDto } from '../platform/dto/update-theme.dto';
 import { ApplyThemePresetDto } from '../platform/dto/apply-theme-preset.dto';
+import { UpdateBrandingDto } from '../platform/dto/update-branding.dto';
+import { ProcessPayoutDto } from '../payouts/dto/request-payout.dto';
+import {
+  ApplyBrandingTemplateDto,
+  SaveBrandingTemplateDto,
+} from '../platform/dto/apply-branding-template.dto';
+import type { BrandingConfig } from '../../common/branding.defaults';
 
 @ApiTags('Admin')
 @Controller('api/v1/admin')
@@ -30,6 +40,12 @@ import { ApplyThemePresetDto } from '../platform/dto/apply-theme-preset.dto';
 @ApiBearerAuth()
 export class AdminController {
   constructor(private readonly admin: AdminService) {}
+
+  @Get('dashboard')
+  @ApiOperation({ summary: 'Platform overview dashboard' })
+  getDashboard() {
+    return this.admin.getAdminDashboard();
+  }
 
   @Get('users')
   @ApiOperation({ summary: 'List users' })
@@ -121,5 +137,85 @@ export class AdminController {
   @ApiOperation({ summary: 'Reset theme to defaults' })
   resetTheme() {
     return this.admin.resetTheme();
+  }
+
+  @Get('settings/branding')
+  @ApiOperation({ summary: 'Get platform branding settings' })
+  getBranding() {
+    return this.admin.getAdminBranding();
+  }
+
+  @Put('settings/branding')
+  @ApiOperation({ summary: 'Update platform branding' })
+  updateBranding(@Body() dto: UpdateBrandingDto) {
+    return this.admin.updateBranding(dto as Partial<BrandingConfig>);
+  }
+
+  @Post('settings/branding/logo')
+  @ApiOperation({ summary: 'Upload platform logo' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  uploadLogo(@UploadedFile() file: Express.Multer.File) {
+    return this.admin.uploadLogo(file);
+  }
+
+  @Delete('settings/branding/logo')
+  @ApiOperation({ summary: 'Remove platform logo' })
+  removeLogo() {
+    return this.admin.removeLogo();
+  }
+
+  @Post('settings/branding/background-image')
+  @ApiOperation({ summary: 'Upload background image' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file'))
+  uploadBackgroundImage(@UploadedFile() file: Express.Multer.File) {
+    return this.admin.uploadBackgroundImage(file);
+  }
+
+  @Post('settings/branding/templates/apply')
+  @ApiOperation({ summary: 'Apply a branding template' })
+  applyBrandingTemplate(@Body() dto: ApplyBrandingTemplateDto) {
+    return this.admin.applyBrandingTemplate(dto.templateId, dto.source);
+  }
+
+  @Post('settings/branding/templates/save')
+  @ApiOperation({ summary: 'Save current branding as template' })
+  saveBrandingTemplate(@Body() dto: SaveBrandingTemplateDto) {
+    return this.admin.saveBrandingTemplate(dto.name);
+  }
+
+  @Delete('settings/branding/templates/:id')
+  @ApiOperation({ summary: 'Delete saved branding template' })
+  deleteBrandingTemplate(@Param('id') id: string) {
+    return this.admin.deleteSavedBrandingTemplate(id);
+  }
+
+  @Get('payouts')
+  @ApiOperation({ summary: 'List payout requests' })
+  listPayouts(@Query('status') status?: string) {
+    return this.admin.listPayouts(status);
+  }
+
+  @Put('payouts/:id')
+  @ApiOperation({ summary: 'Approve or reject a payout' })
+  processPayout(
+    @Param('id') id: string,
+    @Req() req: Request,
+    @Body() dto: ProcessPayoutDto,
+  ) {
+    return this.admin.processPayout(id, req.user?.['sub'] as string, dto);
   }
 }

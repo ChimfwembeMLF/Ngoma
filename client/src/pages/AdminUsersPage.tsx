@@ -34,8 +34,14 @@ export function AdminUsersPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-[22px] font-medium text-foreground">Admin — Users</h1>
         <div className="flex flex-wrap gap-2">
+          <Link to="/admin" className={buttonVariants({ variant: 'outline' })}>
+            Overview
+          </Link>
           <Link to="/admin/theme" className={buttonVariants({ variant: 'outline' })}>
             Theme
+          </Link>
+          <Link to="/admin/branding" className={buttonVariants({ variant: 'outline' })}>
+            Branding
           </Link>
           <Link to="/dashboard" className={buttonVariants({ variant: 'outline' })}>
             Back to dashboard

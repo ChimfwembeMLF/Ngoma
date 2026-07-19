@@ -19,6 +19,7 @@ import { TracksService } from './tracks.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
@@ -54,9 +55,12 @@ export class TracksController {
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get track detail' })
-  getOne(@Param('id') id: string) {
-    return this.tracks.findOne(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get track detail (optional auth for canDownload)' })
+  getOne(@Param('id') id: string, @Req() req: Request) {
+    const userId = req.user?.['sub'] as string | undefined;
+    return this.tracks.findOne(id, userId);
   }
 
   @Post()

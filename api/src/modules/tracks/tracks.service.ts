@@ -75,7 +75,7 @@ export class TracksService {
 
     return {
       success: true,
-      data: items.map((t) => this.toPublicTrack(t)),
+      data: items.map((t) => this.toPublicTrack(t, false)),
       pagination: { total, limit, offset },
     };
   }
@@ -85,7 +85,7 @@ export class TracksService {
       where: { artistId, isPublished: true, isActive: true },
       order: { createdAt: 'DESC' },
     });
-    return { success: true, data: tracks.map((t) => this.toPublicTrack(t)) };
+    return { success: true, data: tracks.map((t) => this.toPublicTrack(t, false)) };
   }
 
   async findMine(artistId: string) {
@@ -96,7 +96,7 @@ export class TracksService {
     return { success: true, data: tracks };
   }
 
-  async findOne(id: string, allowDraft = false) {
+  async findOne(id: string, userId?: string, allowDraft = false) {
     const track = await this.tracksRepo.findOne({
       where: { id, isActive: true },
       relations: ['artist'],
@@ -105,7 +105,8 @@ export class TracksService {
     if (!allowDraft && !track.isPublished) {
       throw new NotFoundException('Track not found');
     }
-    return { success: true, data: this.toPublicTrack(track) };
+    const canDownload = userId ? await this.hasDownloadAccess(userId, id) : false;
+    return { success: true, data: this.toPublicTrack(track, canDownload) };
   }
 
   async update(artistId: string, id: string, dto: UpdateTrackDto) {
@@ -261,7 +262,7 @@ export class TracksService {
     }
   }
 
-  private toPublicTrack(track: Track & { artist?: Artist }) {
+  private toPublicTrack(track: Track & { artist?: Artist }, canDownload = false) {
     return {
       id: track.id,
       title: track.title,
@@ -278,6 +279,7 @@ export class TracksService {
       downloads: Number(track.downloads),
       isPublished: track.isPublished,
       releaseDate: track.releaseDate,
+      canDownload,
     };
   }
 }

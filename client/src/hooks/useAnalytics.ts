@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api-client';
+import type { MetricTrend } from '@/components/dashboard/TrendBadge';
+import type { ActivityItem } from '@/components/dashboard/ActivityFeed';
 
 export type AnalyticsSummary = {
   totalNetEarnings: number;
@@ -20,11 +22,25 @@ export type TrackAnalyticsRow = {
   pricingType: string;
 };
 
+export type TipsSummary = {
+  totalAmount: number;
+  count: number;
+  currency: string;
+};
+
+export type ArtistTrends = {
+  netEarnings: MetricTrend;
+  plays: MetricTrend;
+  downloads: MetricTrend;
+};
+
 type DashboardResponse = {
   success: boolean;
   data: {
     summary: AnalyticsSummary;
     topTracks: TrackAnalyticsRow[];
+    trends?: ArtistTrends;
+    tips?: TipsSummary;
   };
 };
 
@@ -42,10 +58,11 @@ type TimelineResponse = {
   };
 };
 
-export function useAnalyticsDashboard() {
+export function useAnalyticsDashboard(enabled = true) {
   return useQuery({
     queryKey: ['analytics', 'dashboard'],
     queryFn: () => apiFetch<DashboardResponse>('/api/v1/analytics/dashboard'),
+    enabled,
   });
 }
 
@@ -54,5 +71,40 @@ export function useEarningsTimeline(days = 30) {
     queryKey: ['analytics', 'timeline', days],
     queryFn: () =>
       apiFetch<TimelineResponse>(`/api/v1/analytics/earnings/timeline?days=${days}`),
+  });
+}
+
+export type AdminDashboardData = {
+  kpis: {
+    totalUsers: number;
+    totalTracks: number;
+    activeArtists: number;
+    platformFees: number;
+    completedTransactions: number;
+    currency: string;
+  };
+  trends: {
+    users: MetricTrend;
+    tracks: MetricTrend;
+    platformFees: MetricTrend;
+  };
+  revenueTimeline: {
+    days: number;
+    buckets: { date: string; platformFees: number }[];
+  };
+  recentActivity: ActivityItem[];
+  paymentHealth?: {
+    environment: string;
+    webhookConfigured: boolean;
+    enabledCountries: number;
+    pendingPayouts: number;
+  };
+};
+
+export function useAdminDashboard() {
+  return useQuery({
+    queryKey: ['admin', 'dashboard'],
+    queryFn: () =>
+      apiFetch<{ success: boolean; data: AdminDashboardData }>('/api/v1/admin/dashboard'),
   });
 }

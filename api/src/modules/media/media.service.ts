@@ -10,8 +10,14 @@ import { S3StorageService } from './s3-storage.service';
 
 const MAX_AUDIO_BYTES = 50 * 1024 * 1024;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 
 export type SaveAudioResult = {
+  url: string;
+  duration: number | null;
+};
+
+export type SaveVideoResult = {
   url: string;
   duration: number | null;
 };
@@ -56,12 +62,26 @@ export class MediaService {
     if (file.size > MAX_IMAGE_BYTES) {
       throw new BadRequestException('Image file exceeds 5 MB limit');
     }
-    const allowed = ['.jpg', '.jpeg', '.png', '.webp'];
+    const allowed = ['.jpg', '.jpeg', '.png', '.webp', '.svg'];
     const ext = extname(file.originalname).toLowerCase();
     if (!allowed.includes(ext)) {
       throw new BadRequestException('Unsupported image format');
     }
     return this.saveFile('images', file, ext);
+  }
+
+  async saveVideo(file: Express.Multer.File): Promise<SaveVideoResult> {
+    if (!file?.buffer?.length) throw new BadRequestException('Video file is required');
+    if (file.size > MAX_VIDEO_BYTES) {
+      throw new BadRequestException('Video file exceeds 200 MB limit');
+    }
+    const allowed = ['.mp4', '.webm'];
+    const ext = extname(file.originalname).toLowerCase();
+    if (!allowed.includes(ext)) {
+      throw new BadRequestException('Unsupported video format');
+    }
+    const url = await this.saveFile('videos', file, ext);
+    return { url, duration: null };
   }
 
   resolvePath(publicUrl: string): string {

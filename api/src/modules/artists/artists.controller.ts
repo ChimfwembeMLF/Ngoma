@@ -8,6 +8,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { UserRole } from '../user/entities/user.entity';
 import { UpdateArtistProfileDto } from './dto/update-artist-profile.dto';
 import { TracksService } from '../tracks/tracks.service';
+import { VideosService } from '../videos/videos.service';
 
 @ApiTags('Artists')
 @Controller('api/v1/artists')
@@ -15,6 +16,7 @@ export class ArtistsController {
   constructor(
     private readonly artists: ArtistsService,
     private readonly tracks: TracksService,
+    private readonly videos: VideosService,
   ) {}
 
   @Put('profile')
@@ -31,6 +33,12 @@ export class ArtistsController {
   @ApiOperation({ summary: 'Public published tracks for artist' })
   artistTracks(@Param('id') id: string) {
     return this.tracks.findByArtistPublic(id);
+  }
+
+  @Get(':id/videos')
+  @ApiOperation({ summary: 'Public published videos for artist' })
+  artistVideos(@Param('id') id: string) {
+    return this.videos.findByArtistPublic(id);
   }
 
   @Get(':id')

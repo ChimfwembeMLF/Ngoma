@@ -1,0 +1,92 @@
+@keyframes ngoma-gradient-drift {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes ngoma-aurora-shift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.7;
+  }
+  33% {
+    transform: translate(4%, -2%) scale(1.05);
+    opacity: 0.85;
+  }
+  66% {
+    transform: translate(-3%, 3%) scale(0.98);
+    opacity: 0.75;
+  }
+}
+
+@keyframes ngoma-mesh-pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes ngoma-starfield-drift {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 200px 400px;
+  }
+}
+
+.ngoma-bg-gradient-drift {
+  background: linear-gradient(
+    -45deg,
+    #121212,
+    #1a2a3a,
+    #c0672e33,
+    #121212,
+    #1ed76022
+  );
+  background-size: 400% 400%;
+  animation: ngoma-gradient-drift 18s ease infinite;
+}
+
+.ngoma-bg-aurora {
+  background:
+    radial-gradient(ellipse at 20% 30%, #1ed76044 0%, transparent 55%),
+    radial-gradient(ellipse at 80% 20%, #a855f744 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, #3b82f633 0%, transparent 55%),
+    #121212;
+  animation: ngoma-aurora-shift 14s ease-in-out infinite;
+}
+
+.ngoma-bg-mesh-pulse {
+  background:
+    radial-gradient(circle at 30% 40%, #f59e0b55 0%, transparent 45%),
+    radial-gradient(circle at 70% 60%, #c0672e44 0%, transparent 40%),
+    #121212;
+  animation: ngoma-mesh-pulse 10s ease-in-out infinite;
+}
+
+.ngoma-bg-starfield {
+  background-color: #0d1117;
+  background-image: radial-gradient(#ffffff33 1px, transparent 1px);
+  background-size: 24px 24px;
+  animation: ngoma-starfield-drift 60s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ngoma-bg-gradient-drift,
+  .ngoma-bg-aurora,
+  .ngoma-bg-mesh-pulse,
+  .ngoma-bg-starfield {
+    animation: none !important;
+  }
+}

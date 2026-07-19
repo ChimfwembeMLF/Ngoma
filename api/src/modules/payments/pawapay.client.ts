@@ -151,6 +151,94 @@ function formatPawaPayError(error: unknown): string {
   return error instanceof Error ? error.message : 'Unknown payment gateway error';
 }
 
+export type PawaPayPayoutInput = {
+  payoutId: string;
+  amount: string;
+  currency: string;
+  correspondent: string;
+  phone: string;
+};
+
+export function buildPawaPayPayoutPayload(input: PawaPayPayoutInput) {
+  return {
+    payoutId: input.payoutId,
+    amount: input.amount,
+    currency: input.currency,
+    recipient: {
+      type: 'MMO',
+      accountDetails: {
+        provider: input.correspondent,
+        phoneNumber: input.phone,
+      },
+    },
+  };
+}
+
+export type ParsedPawaPayPayoutStatus = {
+  payoutId?: string;
+  payoutStatus?: string;
+  transactionId?: string;
+  errorCode?: string;
+  errorMessage?: string;
+};
+
+export function parsePawaPayPayoutStatus(data: unknown): ParsedPawaPayPayoutStatus | null {
+  const record = readRecord(data);
+  if (!record) return null;
+  const metadata = extractPawaPayMetadata(data);
+
+  if (record.data && typeof record.data === 'object') {
+    const inner = record.data as Record<string, unknown>;
+    return {
+      payoutId:
+        typeof inner.payoutId === 'string'
+          ? inner.payoutId
+          : typeof record.payoutId === 'string'
+            ? record.payoutId
+            : undefined,
+      payoutStatus:
+        typeof inner.status === 'string' ? inner.status.toUpperCase() : undefined,
+      ...metadata,
+    };
+  }
+
+  const status =
+    typeof record.status === 'string' ? record.status.toUpperCase() : undefined;
+  return {
+    payoutId: typeof record.payoutId === 'string' ? record.payoutId : undefined,
+    payoutStatus: status,
+    ...metadata,
+  };
+}
+
+export function isPawaPayPayoutCompleted(status?: string | null): boolean {
+  return (status ?? '').toUpperCase() === 'COMPLETED';
+}
+
+export function isPawaPayPayoutFailed(status?: string | null): boolean {
+  return (status ?? '').toUpperCase() === 'FAILED';
+}
+
+export async function postPawaPayPayout(
+  config: ConfigService,
+  input: PawaPayPayoutInput,
+): Promise<ParsedPawaPayPayoutStatus | null> {
+  const token = resolvePawaPayToken(config);
+  if (!token) return null;
+
+  const baseUrl = resolvePawaPayBaseUrl(config);
+  try {
+    const response = await axios.post(
+      `${baseUrl}/payouts`,
+      buildPawaPayPayoutPayload(input),
+      { headers: { Authorization: `Bearer ${token}` } },
+    );
+    return parsePawaPayPayoutStatus(response.data);
+  } catch (error) {
+    throw new BadRequestException(formatPawaPayError(error));
+  }
+}
+
 export async function postPawaPayDeposit(
   config: ConfigService,
   input: PawaPayDepositInput,

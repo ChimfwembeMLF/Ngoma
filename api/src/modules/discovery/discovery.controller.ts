@@ -28,4 +28,10 @@ export class DiscoveryController {
   ) {
     return this.discovery.search(q ?? '', limit ? Number(limit) : 20, offset ? Number(offset) : 0);
   }
+
+  @Get('videos/recent')
+  @ApiOperation({ summary: 'Recent published videos' })
+  recentVideos(@Query('limit') limit?: string) {
+    return this.discovery.recentVideos(limit ? Number(limit) : 20);
+  }
 }

@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTrending, useNewReleases, useSearch } from '@/hooks/useDiscovery';
+import { useRecentVideos } from '@/hooks/useVideos';
 import { useCuratedPlaylists } from '@/hooks/usePlaylists';
 import { getAccessToken } from '@/lib/auth-storage';
 import { AppShell } from '@/components/layout/AppShell';
 import { PlaylistCard } from '@/components/playlists/PlaylistCard';
 import { SearchPill } from '@/components/ui/SearchPill';
 import { TrackCard } from '@/components/ui/TrackCard';
+import { VideoCard } from '@/components/videos/VideoCard';
 import { buttonVariants } from '@/components/ui/button';
 
 export function DiscoverPage() {
@@ -16,6 +18,8 @@ export function DiscoverPage() {
   const newReleases = useNewReleases();
   const searchResults = useSearch(search);
   const curated = useCuratedPlaylists();
+  const recentVideos = useRecentVideos();
+  const videos = recentVideos.data?.data ?? [];
 
   const sections = [
     { title: 'Trending', tracks: trending.data?.data ?? [], loading: trending.isLoading },
@@ -74,6 +78,17 @@ export function DiscoverPage() {
                 />
               );
             })}
+          </div>
+        </section>
+      )}
+
+      {!recentVideos.isLoading && videos.length > 0 && (
+        <section className="mb-12">
+          <h2 className="mb-4 text-xl font-semibold text-foreground">Videos</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {videos.map((video) => (
+              <VideoCard key={video.id} video={video} />
+            ))}
           </div>
         </section>
       )}

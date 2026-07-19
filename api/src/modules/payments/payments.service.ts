@@ -38,7 +38,11 @@ import {
   postPawaPayDeposit,
   type ParsedPawaPayDepositStatus,
 } from './pawapay.client';
-import { listPaymentCountryOptions, normalizeMobileMoneyPhone, resolveOperatorByPawapayCode, resolvePaymentCorrespondent } from './payment-countries';
+import { listPaymentCountryOptions, normalizeMobileMoneyPhone, resolveOperatorByPawapayCode, resolvePaymentCorrespondent, getDecimalsInAmountForCountry, PAYMENT_COUNTRY_CATALOG } from './payment-countries';
+import {
+  normalizePaymentAmount,
+  PaymentAmountError,
+} from './payment-amount.util';
 
 const PLATFORM_FEE_RATE = 0.3;
 const TIP_PLATFORM_FEE_RATE = 0.05;
@@ -83,16 +87,38 @@ export class PaymentsService {
 
   getPaymentConfig() {
     const pawapayEnabled = isPawapayEnabled(this.config);
+    const explicitWebhook = Boolean(this.config.get<string>('PAWAPAY_WEBHOOK_URL')?.trim());
     return {
       success: true,
       data: {
         pawapayEnabled,
         environment: resolvePawaPayEnvironment(this.config),
         webhookUrl: resolveWebhookUrl(this.config),
+        webhookUrlConfigured: explicitWebhook,
         devAutoComplete: isDevAutoCompleteEnabled(this.config),
         baseUrl: pawapayEnabled ? resolvePawaPayBaseUrl(this.config) : null,
       },
     };
+  }
+
+  getPaymentHealth() {
+    const explicitWebhook = Boolean(this.config.get<string>('PAWAPAY_WEBHOOK_URL')?.trim());
+    return {
+      environment: resolvePawaPayEnvironment(this.config),
+      webhookConfigured: explicitWebhook,
+      enabledCountries: PAYMENT_COUNTRY_CATALOG.filter((c) => c.enabled).length,
+    };
+  }
+
+  private normalizeAmountForCountry(amount: number, countryId?: string) {
+    const decimalsInAmount = getDecimalsInAmountForCountry(countryId);
+    try {
+      return normalizePaymentAmount(amount, decimalsInAmount);
+    } catch (err) {
+      const message =
+        err instanceof PaymentAmountError ? err.message : 'Invalid payment amount';
+      throw new BadRequestException(message);
+    }
   }
 
   async initiateDeposit(userId: string, dto: InitiatePaymentDto) {
@@ -125,7 +151,7 @@ export class PaymentsService {
     }
 
     const depositId = randomUUID();
-    const amount = String(dto.amount);
+    const { amountString } = this.normalizeAmountForCountry(dto.amount, dto.countryId);
     const { pawapayCode, dialCode, currency: countryCurrency } = this.resolveCorrespondent(dto);
     const currency = dto.currency || countryCurrency;
 
@@ -133,7 +159,7 @@ export class PaymentsService {
       this.paymentsRepo.create({
         userId,
         depositId,
-        amount,
+        amount: amountString,
         currency,
         provider: pawapayCode,
         status: PaymentStatus.INITIATED,
@@ -144,15 +170,21 @@ export class PaymentsService {
 
     await this.submitToGateway(payment, dto.phone, pawapayCode, dialCode, `Ngoma ${track.title}`);
 
+    const saved = await this.paymentsRepo.findOne({ where: { id: payment.id } });
+    const status = saved?.status ?? payment.status;
+
     return {
       success: true,
       data: {
         depositId: payment.depositId,
         paymentId: payment.id,
-        status: payment.status,
-        message: isPawapayEnabled(this.config)
-          ? 'Check your phone for USSD prompt'
-          : 'Sandbox payment completed (dev mode)',
+        status,
+        message:
+          status === PaymentStatus.COMPLETED
+            ? 'Purchase complete'
+            : isPawapayEnabled(this.config)
+              ? 'Check your phone for USSD prompt'
+              : 'Sandbox payment completed (dev mode)',
       },
     };
   }
@@ -174,7 +206,7 @@ export class PaymentsService {
     }
 
     const depositId = randomUUID();
-    const amount = String(dto.amount);
+    const { amountString } = this.normalizeAmountForCountry(dto.amount, dto.countryId);
     const { pawapayCode, dialCode, currency: countryCurrency } = this.resolveCorrespondent(dto);
     const currency = dto.currency || countryCurrency;
 
@@ -182,7 +214,7 @@ export class PaymentsService {
       this.paymentsRepo.create({
         userId,
         depositId,
-        amount,
+        amount: amountString,
         currency,
         provider: pawapayCode,
         status: PaymentStatus.INITIATED,
@@ -195,7 +227,7 @@ export class PaymentsService {
       this.tipsRepo.create({
         artistId: dto.artistId,
         userId,
-        amount,
+        amount: amountString,
         paymentId: payment.id,
         message: dto.message,
         trackId: dto.trackId,
@@ -256,19 +288,31 @@ export class PaymentsService {
       payment.status !== PaymentStatus.COMPLETED &&
       payment.status !== PaymentStatus.FAILED
     ) {
-      const remote = await getPawaPayDepositStatus(this.config, depositId);
-      const parsed = parsePawaPayDepositStatus(remote);
-      if (parsed?.lookupStatus === 'NOT_FOUND') {
-        // remain pending — do not fail on missing remote record yet
-      } else if (isPawaPayDepositCompleted(parsed?.depositStatus)) {
-        await this.applyParsedStatus(payment, parsed);
-        await this.completePayment(payment);
-      } else if (isPawaPayDepositFailed(parsed?.depositStatus)) {
-        await this.applyParsedStatus(payment, parsed);
-        payment.status = PaymentStatus.FAILED;
-        await this.paymentsRepo.save(payment);
-      } else if (parsed) {
-        await this.applyParsedStatus(payment, parsed);
+      try {
+        const remote = await getPawaPayDepositStatus(this.config, depositId);
+        const parsed = parsePawaPayDepositStatus(remote);
+        if (parsed?.lookupStatus === 'NOT_FOUND') {
+          // remain pending — do not fail on missing remote record yet
+        } else if (isPawaPayDepositCompleted(parsed?.depositStatus)) {
+          await this.applyParsedStatus(payment, parsed);
+          await this.completePayment(payment);
+        } else if (isPawaPayDepositFailed(parsed?.depositStatus)) {
+          await this.applyParsedStatus(payment, parsed);
+          payment.status = PaymentStatus.FAILED;
+          await this.paymentsRepo.save(payment);
+        } else if (parsed) {
+          await this.applyParsedStatus(payment, parsed);
+          if (parsed.depositStatus === 'PENDING') {
+            payment.status = PaymentStatus.PENDING;
+            await this.paymentsRepo.save(payment);
+          }
+        }
+      } catch (err) {
+        this.logger.warn(
+          `PawaPay status lookup failed for deposit ${depositId}: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
       }
     }
 
@@ -371,14 +415,26 @@ export class PaymentsService {
       if (!normalizedPhone) {
         throw new BadRequestException('Phone number is required for mobile money payment');
       }
-      const result = await postPawaPayDeposit(this.config, {
-        depositId: payment.depositId,
-        amount: payment.amount,
-        currency: payment.currency,
-        correspondent: provider,
-        phone: normalizedPhone,
-        customerMessage,
-      });
+      let result: ParsedPawaPayDepositStatus | null = null;
+      try {
+        result = await postPawaPayDeposit(this.config, {
+          depositId: payment.depositId,
+          amount: payment.amount,
+          currency: payment.currency,
+          correspondent: provider,
+          phone: normalizedPhone,
+          customerMessage,
+        });
+      } catch (err) {
+        this.logger.error(
+          `PawaPay deposit failed for ${payment.depositId}: ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+        throw new ServiceUnavailableException(
+          'Payment service is temporarily unavailable. Please try again shortly.',
+        );
+      }
       payment.status = PaymentStatus.PENDING;
       if (result) {
         await this.applyParsedStatus(payment, result);

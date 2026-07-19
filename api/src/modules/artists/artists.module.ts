@@ -4,9 +4,10 @@ import { Artist } from './entities/artist.entity';
 import { ArtistsService } from './artists.service';
 import { ArtistsController } from './artists.controller';
 import { TracksModule } from '../tracks/tracks.module';
+import { VideosModule } from '../videos/videos.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Artist]), TracksModule],
+  imports: [TypeOrmModule.forFeature([Artist]), TracksModule, VideosModule],
   providers: [ArtistsService],
   controllers: [ArtistsController],
   exports: [ArtistsService, TypeOrmModule],

@@ -14,6 +14,7 @@ export type PaymentConfig = {
   pawapayEnabled: boolean;
   environment: string;
   webhookUrl: string;
+  webhookUrlConfigured?: boolean;
   devAutoComplete: boolean;
   baseUrl: string | null;
 };
@@ -69,7 +70,11 @@ export function usePaymentStatus(depositId?: string, enabled = false) {
         };
       }>(`/api/v1/payments/status/${depositId}`),
     enabled: enabled && !!depositId,
-    refetchInterval: enabled ? 3000 : false,
+    refetchInterval: (query) => {
+      const status = query.state.data?.data.status;
+      if (status === 'COMPLETED' || status === 'FAILED') return false;
+      return 3000;
+    },
   });
 }
 
@@ -87,12 +92,15 @@ type PaymentHistoryItem = {
   errorMessage?: string | null;
 };
 
-export function usePaymentHistory() {
+export function usePaymentHistory(options?: { limit?: number; offset?: number }) {
+  const limit = options?.limit ?? 20;
+  const offset = options?.offset ?? 0;
+
   return useQuery({
-    queryKey: ['payments', 'history'],
+    queryKey: ['payments', 'history', limit, offset],
     queryFn: () =>
-      apiFetch<{ success: boolean; data: PaymentHistoryItem[]; pagination?: unknown }>(
-        '/api/v1/payments/history',
+      apiFetch<{ success: boolean; data: PaymentHistoryItem[]; pagination?: { total: number; limit: number; offset: number } }>(
+        `/api/v1/payments/history?limit=${limit}&offset=${offset}`,
       ),
   });
 }

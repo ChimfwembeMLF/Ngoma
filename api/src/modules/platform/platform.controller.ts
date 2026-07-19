@@ -12,4 +12,10 @@ export class PlatformController {
   getTheme() {
     return this.platform.getTheme();
   }
+
+  @Get('branding')
+  @ApiOperation({ summary: 'Public platform branding (logo, background, layout)' })
+  getBranding() {
+    return this.platform.getBranding();
+  }
 }

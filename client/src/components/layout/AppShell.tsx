@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { getAccessToken } from '@/lib/auth-storage';
+import { hasActiveBackground } from '@/lib/branding-defaults';
 import { cn } from '@/lib/utils';
+import { useBranding } from '@/providers/BrandingProvider';
 import { buttonVariants } from '@/components/ui/button';
 
 type MaxWidth = '6xl' | '4xl' | '3xl' | '2xl' | 'md';
@@ -12,6 +14,24 @@ const maxWidthClasses: Record<MaxWidth, string> = {
   '2xl': 'max-w-2xl',
   md: 'max-w-md',
 };
+
+const layoutHeaderClasses = {
+  default: 'py-4',
+  minimal: 'py-2',
+  hero: 'py-8',
+} as const;
+
+const layoutNavClasses = {
+  default: '',
+  minimal: 'text-sm',
+  hero: '',
+} as const;
+
+const layoutLogoMaxHeight = {
+  default: 'max-h-16',
+  minimal: 'max-h-12',
+  hero: 'max-h-24',
+} as const;
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -27,15 +47,37 @@ export function AppShell({
   className,
 }: AppShellProps) {
   const isLoggedIn = !!getAccessToken();
+  const { branding } = useBranding();
+  const layout = branding.layoutTemplateId;
+  const bgActive = hasActiveBackground(branding);
 
   return (
-    <div className={cn('min-h-screen bg-background text-foreground', className)}>
-      <header className="border-b border-border bg-background/95">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-4 sm:px-8">
-          <Link to="/discover" className="text-lg font-bold text-foreground">
-            Ngoma
+    <div className={cn('relative min-h-screen text-foreground', !bgActive && 'bg-background', className)}>
+      <header
+        className={cn(
+          'relative z-10 border-b border-border',
+          bgActive ? 'bg-background/80 backdrop-blur-md' : 'bg-background/95',
+        )}
+      >
+        <div
+          className={cn(
+            'mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 sm:px-8',
+            layoutHeaderClasses[layout],
+          )}
+        >
+          <Link to="/discover" className="shrink-0">
+            {branding.logoUrl ? (
+              <img
+                src={branding.logoUrl}
+                alt="Ngoma"
+                style={{ width: branding.logoWidth }}
+                className={cn('h-auto w-auto object-contain', layoutLogoMaxHeight[layout])}
+              />
+            ) : (
+              <span className="text-lg font-bold text-foreground">Ngoma</span>
+            )}
           </Link>
-          <nav className="flex flex-wrap items-center gap-2">
+          <nav className={cn('flex flex-wrap items-center gap-2', layoutNavClasses[layout])}>
             <Link
               to="/discover"
               className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'normal-case' })}
@@ -71,7 +113,7 @@ export function AppShell({
       </header>
       <main
         className={cn(
-          'mx-auto w-full px-4 py-8 sm:px-8',
+          'relative z-10 mx-auto w-full px-4 py-8 sm:px-8',
           maxWidthClasses[maxWidth],
           centered && 'flex min-h-[calc(100vh-4rem)] items-center justify-center',
         )}

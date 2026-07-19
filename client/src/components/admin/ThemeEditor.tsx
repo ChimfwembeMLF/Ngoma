@@ -17,6 +17,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { FormTabs } from '@/components/forms';
 import {
   useApplyThemePreset,
   useResetAdminTheme,
@@ -36,7 +37,6 @@ export function ThemeEditor({ presets, activePresetId, initialTheme }: ThemeEdit
 
   const [selectedPresetId, setSelectedPresetId] = useState(activePresetId);
   const [draft, setDraft] = useState<ThemeTokens>(initialTheme);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
   const [savedPresetId, setSavedPresetId] = useState(activePresetId);
   const [savedTheme, setSavedTheme] = useState<ThemeTokens>(initialTheme);
 
@@ -100,9 +100,11 @@ export function ThemeEditor({ presets, activePresetId, initialTheme }: ThemeEdit
 
   const saving = applyPreset.isPending || updateTheme.isPending;
 
-  return (
-    <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-8">
+  const themeTabs = [
+    {
+      id: 'presets',
+      label: 'Presets',
+      content: (
         <section className="space-y-4">
           <div className="flex items-center justify-between gap-4">
             <h2 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
@@ -123,47 +125,51 @@ export function ThemeEditor({ presets, activePresetId, initialTheme }: ThemeEdit
             onSelect={handleSelectPreset}
           />
         </section>
-
-        <details
-          className="group rounded-lg border border-border"
-          open={advancedOpen}
-          onToggle={(e) => setAdvancedOpen((e.target as HTMLDetailsElement).open)}
-        >
-          <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-foreground">
-            Advanced customization
-          </summary>
-          <div className="space-y-6 border-t border-border p-4">
-            {THEME_GROUPS.map((group) => (
-              <div key={group.label} className="space-y-3">
-                <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                  {group.label}
-                </h3>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  {group.keys.map((key) => (
-                    <div key={key} className="space-y-2">
-                      <Label htmlFor={`theme-${key}`}>{formatTokenLabel(key)}</Label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          id={`theme-${key}`}
-                          type="color"
-                          value={draft[key]}
-                          onChange={(e) => setToken(key, e.target.value)}
-                          className="h-10 w-12 cursor-pointer rounded border border-border bg-transparent p-1"
-                        />
-                        <Input
-                          value={draft[key]}
-                          onChange={(e) => setToken(key, e.target.value)}
-                          className="font-mono text-sm uppercase"
-                          maxLength={7}
-                        />
-                      </div>
+      ),
+    },
+    {
+      id: 'advanced',
+      label: 'Advanced',
+      content: (
+        <div className="space-y-6">
+          {THEME_GROUPS.map((group) => (
+            <div key={group.label} className="space-y-3">
+              <h3 className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                {group.label}
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {group.keys.map((key) => (
+                  <div key={key} className="space-y-2">
+                    <Label htmlFor={`theme-${key}`}>{formatTokenLabel(key)}</Label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        id={`theme-${key}`}
+                        type="color"
+                        value={draft[key]}
+                        onChange={(e) => setToken(key, e.target.value)}
+                        className="h-10 w-12 cursor-pointer rounded border border-border bg-transparent p-1"
+                      />
+                      <Input
+                        value={draft[key]}
+                        onChange={(e) => setToken(key, e.target.value)}
+                        className="font-mono text-sm uppercase"
+                        maxLength={7}
+                      />
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </details>
+            </div>
+          ))}
+        </div>
+      ),
+    },
+  ];
+
+  return (
+    <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-6">
+        <FormTabs tabs={themeTabs} defaultTabId="presets" />
 
         <div className="flex flex-wrap gap-3">
           <Button type="button" onClick={handleSave} disabled={!hasChanges || saving}>

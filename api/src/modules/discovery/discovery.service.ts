@@ -2,6 +2,7 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Track } from '../tracks/entities/track.entity';
+import { VideosService } from '../videos/videos.service';
 
 function sanitizeFtsQuery(q: string): string {
   return q
@@ -16,6 +17,7 @@ export class DiscoveryService {
   constructor(
     @InjectRepository(Track)
     private readonly tracksRepo: Repository<Track>,
+    private readonly videos: VideosService,
   ) {}
 
   async trending(limit = 20) {
@@ -65,6 +67,10 @@ export class DiscoveryService {
       .getMany();
 
     return { success: true, data: items.map((t) => this.toItem(t)) };
+  }
+
+  recentVideos(limit = 20) {
+    return this.videos.findRecentPublic(limit);
   }
 
   private toItem(track: Track & { artist?: { artistName: string } }) {

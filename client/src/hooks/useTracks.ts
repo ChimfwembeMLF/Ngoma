@@ -17,6 +17,7 @@ export type Track = {
   isDraft?: boolean;
   artistId?: string;
   artistName?: string;
+  canDownload?: boolean;
 };
 
 type TracksResponse = { success: boolean; data: Track[] };

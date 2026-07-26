@@ -4,6 +4,7 @@ import { hasActiveBackground } from '@/lib/branding-defaults';
 import { cn } from '@/lib/utils';
 import { useBranding } from '@/providers/BrandingProvider';
 import { buttonVariants } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/layout/ThemeToggle';
 
 type MaxWidth = '6xl' | '4xl' | '3xl' | '2xl' | 'md';
 
@@ -108,6 +109,7 @@ export function AppShell({
                 Sign in
               </Link>
             )}
+            <ThemeToggle />
           </nav>
         </div>
       </header>

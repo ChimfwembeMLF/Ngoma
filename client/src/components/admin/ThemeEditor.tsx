@@ -12,6 +12,7 @@ import {
   type ThemePresetMeta,
 } from '@/lib/theme-presets';
 import { applyTheme } from '@/lib/apply-theme';
+import { useColorMode } from '@/providers/ColorModeProvider';
 import { ThemeSwatchGrid } from '@/components/admin/ThemeSwatchGrid';
 import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -31,6 +32,7 @@ type ThemeEditorProps = {
 };
 
 export function ThemeEditor({ presets, activePresetId, initialTheme }: ThemeEditorProps) {
+  const { resolvedMode } = useColorMode();
   const applyPreset = useApplyThemePreset();
   const updateTheme = useUpdateAdminTheme();
   const resetTheme = useResetAdminTheme();
@@ -48,8 +50,8 @@ export function ThemeEditor({ presets, activePresetId, initialTheme }: ThemeEdit
   }, [activePresetId, initialTheme]);
 
   useEffect(() => {
-    applyTheme(draft);
-  }, [draft]);
+    applyTheme(draft, resolvedMode);
+  }, [draft, resolvedMode]);
 
   const handleSelectPreset = (presetId: string) => {
     setSelectedPresetId(presetId);

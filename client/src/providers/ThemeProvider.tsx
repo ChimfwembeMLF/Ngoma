@@ -4,6 +4,7 @@ import { apiFetch } from '@/lib/api-client';
 import { applyTheme } from '@/lib/apply-theme';
 import { DEFAULT_THEME, type ThemeTokens } from '@/lib/theme-defaults';
 import type { ThemePresetMeta } from '@/lib/theme-presets';
+import { useColorMode } from '@/providers/ColorModeProvider';
 
 type ThemeResponse = {
   success: boolean;
@@ -28,6 +29,7 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
+  const { resolvedMode } = useColorMode();
   const { data, isLoading } = useQuery({
     queryKey: ['platform', 'theme'],
     queryFn: () => apiFetch<ThemeResponse>('/api/v1/platform/theme'),
@@ -37,8 +39,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const theme = data?.data.theme ?? DEFAULT_THEME;
 
   useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+    applyTheme(theme, resolvedMode);
+  }, [theme, resolvedMode]);
 
   return (
     <ThemeContext.Provider value={{ theme, isLoading }}>

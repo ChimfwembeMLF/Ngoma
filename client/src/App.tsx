@@ -21,6 +21,7 @@ import { VideoPage } from './pages/VideoPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { ThemeProvider } from './providers/ThemeProvider';
+import { ColorModeProvider } from './providers/ColorModeProvider';
 import { BrandingProvider } from './providers/BrandingProvider';
 
 const queryClient = new QueryClient();
@@ -28,8 +29,9 @@ const queryClient = new QueryClient();
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <BrandingProvider>
+      <ColorModeProvider>
+        <ThemeProvider>
+          <BrandingProvider>
         <BrowserRouter>
         <Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
@@ -145,8 +147,9 @@ export default function App() {
           />
         </Routes>
         </BrowserRouter>
-        </BrandingProvider>
-      </ThemeProvider>
+          </BrandingProvider>
+        </ThemeProvider>
+      </ColorModeProvider>
     </QueryClientProvider>
   );
 }

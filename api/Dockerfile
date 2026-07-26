@@ -21,4 +21,4 @@ COPY --from=build /app/api/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/api/package.json ./
 EXPOSE 4000
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

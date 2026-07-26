@@ -9,6 +9,7 @@ import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { AudioPlayer } from '@/components/player/AudioPlayer';
 import { usePlayer } from '@/providers/PlayerProvider';
+import { useAuth } from '@/hooks/useAuth';
 import { ReloadPrompt } from '@/components/pwa/ReloadPrompt';
 
 type MaxWidth = '6xl' | '4xl' | '3xl' | '2xl' | 'md';
@@ -52,7 +53,11 @@ export function AppShell({
   centered = false,
   className,
 }: AppShellProps) {
-  const isLoggedIn = !!getAccessToken();
+  const { meQuery } = useAuth();
+  const user = meQuery.data?.data;
+  const isLoggedIn = !!user;
+  const isArtist = user?.role === 'ARTIST';
+  
   const { branding } = useBranding();
   const layout = branding.layoutTemplateId;
   const bgActive = hasActiveBackground(branding);
@@ -100,7 +105,7 @@ export function AppShell({
                   Playlists
                 </Link>
                 <Link
-                  to="/dashboard"
+                  to={isArtist ? "/artist/dashboard" : "/dashboard"}
                   className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'normal-case' })}
                 >
                   Dashboard

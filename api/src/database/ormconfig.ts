@@ -13,6 +13,8 @@ export function typeOrmConfigFactory(
     password: configService.get<string>('DB_PASSWORD') || 'ngoma',
     database: configService.get<string>('DB_DATABASE') || 'ngoma',
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
+    migrations: [__dirname + '/../../database/migrations/*.{ts,js}'],
+    migrationsRun: configService.get<string>('NODE_ENV') === 'production',
     synchronize: configService.get<string>('DB_SYNCHRONIZE') === 'true',
     namingStrategy: new SnakeNamingStrategy(),
   };

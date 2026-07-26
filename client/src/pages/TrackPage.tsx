@@ -9,7 +9,7 @@ import {
   useStartAdSession,
   type AdSessionStart,
 } from '@/hooks/useAds';
-import { AudioPlayer } from '@/components/player/AudioPlayer';
+import { usePlayer } from '@/providers/PlayerProvider';
 import { AdGateModal } from '@/components/ads/AdGateModal';
 import { formatDuration } from '@/lib/format-duration';
 import { getAccessToken } from '@/lib/auth-storage';
@@ -33,6 +33,7 @@ export function TrackPage() {
   const track = data?.data;
   const artistVideos = useArtistVideos(track?.artistId);
   const artistVideoList = artistVideos.data?.data ?? [];
+  const { playTrack, currentTrack, isPlaying, pauseTrack } = usePlayer();
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState('');
   const [adSession, setAdSession] = useState<AdSessionStart | null>(null);
@@ -179,7 +180,28 @@ export function TrackPage() {
           </div>
         </div>
 
-        <AudioPlayer src={streamUrl} title={track.title} artistName={track.artistName} />
+        <div className="flex flex-wrap gap-3">
+          <Button 
+            variant="default"
+            size="lg"
+            className="w-full sm:w-auto"
+            onClick={() => {
+              if (currentTrack?.id === track.id && isPlaying) {
+                pauseTrack();
+              } else {
+                playTrack({
+                  id: track.id,
+                  title: track.title,
+                  artistName: track.artistName || 'Unknown Artist',
+                  streamUrl,
+                  coverUrl: track.coverArtUrl || undefined,
+                });
+              }
+            }}
+          >
+            {currentTrack?.id === track.id && isPlaying ? 'Pause' : 'Play'}
+          </Button>
+        </div>
 
         <div className="flex flex-wrap gap-3">
           {isPaid ? (

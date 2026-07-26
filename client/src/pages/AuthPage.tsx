@@ -52,8 +52,12 @@ export function AuthPage() {
     e.preventDefault();
     setError(null);
     try {
-      await loginMutation.mutateAsync({ email, password });
-      navigate('/dashboard');
+      const res = await loginMutation.mutateAsync({ email, password });
+      if (res.data.user.role === 'ARTIST') {
+        navigate('/artist/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     }
@@ -77,7 +81,7 @@ export function AuthPage() {
       return;
     }
     try {
-      await registerMutation.mutateAsync({
+      const res = await registerMutation.mutateAsync({
         email,
         phone: formattedPhone,
         password,
@@ -86,7 +90,11 @@ export function AuthPage() {
         role,
         artistName: artistName.trim() || fullName,
       });
-      navigate('/dashboard');
+      if (res.data.user.role === 'ARTIST') {
+        navigate('/artist/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Authentication failed');
     }

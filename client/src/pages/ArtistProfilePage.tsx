@@ -7,20 +7,28 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { GENRE_OPTIONS } from '@/components/tracks/TrackUploadForm';
 
 export function ArtistProfilePage() {
   const { meQuery } = useAuth();
   const update = useUpdateArtistProfile();
   const [artistName, setArtistName] = useState(meQuery.data?.data.artistName ?? '');
   const [bio, setBio] = useState('');
-  const [genres, setGenres] = useState('Afrobeats, Amapiano');
+  const [genre, setGenre] = useState('Afrobeats');
   const [message, setMessage] = useState('');
 
   const save = async () => {
     await update.mutateAsync({
       artistName,
       bio,
-      genres: genres.split(',').map((g) => g.trim()).filter(Boolean),
+      genres: [genre],
     });
     setMessage('Profile updated');
   };
@@ -51,13 +59,17 @@ export function ArtistProfilePage() {
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="genres">Genres</Label>
-          <Input
-            id="genres"
-            placeholder="Genres (comma separated)"
-            value={genres}
-            onChange={(e) => setGenres(e.target.value)}
-          />
+          <Label htmlFor="genres">Primary Genre</Label>
+          <Select value={genre} onValueChange={setGenre}>
+            <SelectTrigger id="genres" className="w-full">
+              <SelectValue placeholder="Select genre" />
+            </SelectTrigger>
+            <SelectContent>
+              {GENRE_OPTIONS.map((g) => (
+                <SelectItem key={g} value={g}>{g}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <Button type="button" variant="default" onClick={save} disabled={update.isPending}>
           Save profile

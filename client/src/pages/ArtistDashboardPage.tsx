@@ -25,6 +25,7 @@ import { EarningsTimeline } from '@/components/analytics/EarningsTimeline';
 import { TrackEarningsTable } from '@/components/analytics/TrackEarningsTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function ArtistDashboardPage() {
   const { data, refetch, isLoading } = useMyTracks();
@@ -40,6 +41,7 @@ export function ArtistDashboardPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [videoActionError, setVideoActionError] = useState('');
+  const [activeTab, setActiveTab] = useState<'overview' | 'tracks' | 'videos'>('overview');
 
   const {
     data: analyticsData,
@@ -133,21 +135,50 @@ export function ArtistDashboardPage() {
 
   return (
     <AppShell maxWidth="6xl">
-      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-[22px] font-medium text-foreground">Artist dashboard</h1>
-        <Link to="/artist/profile" className={buttonVariants({ variant: 'outline' })}>
-          Edit profile
-        </Link>
+      <div className="mb-8 flex items-center justify-between">
+        <h1 className="text-2xl font-bold text-foreground">Artist Dashboard</h1>
       </div>
 
-      <div className="space-y-8">
-        <AnalyticsSummaryCards
-          summary={dashboard?.summary}
-          trends={dashboard?.trends}
-          tips={dashboard?.tips}
-          isLoading={analyticsLoading}
-          error={analyticsError}
-        />
+      <div className="flex border-b border-border mb-6 overflow-x-auto no-scrollbar">
+        <button
+          className={cn(
+            "px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors",
+            activeTab === 'overview' ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+          onClick={() => setActiveTab('overview')}
+        >
+          Overview & Payouts
+        </button>
+        <button
+          className={cn(
+            "px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors",
+            activeTab === 'tracks' ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+          onClick={() => setActiveTab('tracks')}
+        >
+          Manage Tracks
+        </button>
+        <button
+          className={cn(
+            "px-4 py-3 font-medium text-sm whitespace-nowrap border-b-2 transition-colors",
+            activeTab === 'videos' ? "border-primary text-primary" : "border-transparent text-muted-foreground hover:text-foreground"
+          )}
+          onClick={() => setActiveTab('videos')}
+        >
+          Manage Videos
+        </button>
+      </div>
+
+      <div className="space-y-6">
+        {activeTab === 'overview' && (
+          <>
+            <AnalyticsSummaryCards
+              summary={dashboard?.summary}
+              trends={dashboard?.trends}
+              tips={dashboard?.tips}
+              isLoading={analyticsLoading}
+              error={analyticsError}
+            />
 
         <EarningsTimeline />
 
@@ -241,13 +272,57 @@ export function ArtistDashboardPage() {
             </div>
           </Card>
         </section>
+        </>
+        )}
 
-        <TrackUploadForm onSuccess={() => refetch()} />
+        {activeTab === 'tracks' && (
+          <>
+            <TrackUploadForm onSuccess={() => refetch()} />
+            
+            <section>
+              <h2 className="mb-4 text-base font-semibold text-foreground">Your tracks</h2>
+              {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
+              {!isLoading && tracks.length === 0 && (
+                <p className="text-sm text-muted-foreground">No tracks yet — upload your first track above.</p>
+              )}
+              <ul className="space-y-3">
+                {tracks.map((track) => (
+                  <li key={track.id}>
+                    <Card
+                      size="sm"
+                      className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-foreground">{track.title}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {track.genre} · {track.isPublished ? 'Published' : 'Draft'} ·{' '}
+                          {track.pricingType === 'FREE'
+                            ? 'Free'
+                            : track.pricingType === 'PAY_WHAT_YOU_WANT'
+                              ? `PWYW from ZMW ${track.minPrice ?? 0}`
+                              : `ZMW ${track.price ?? 0}`}
+                        </div>
+                      </div>
+                      <Link
+                        to={`/tracks/${track.id}`}
+                        className={buttonVariants({ variant: 'ghost', className: 'shrink-0 text-sm' })}
+                      >
+                        View
+                      </Link>
+                    </Card>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          </>
+        )}
 
-        <VideoUploadForm onSuccess={() => refetchVideos()} />
+        {activeTab === 'videos' && (
+          <>
+            <VideoUploadForm onSuccess={() => refetchVideos()} />
 
-        <section>
-          <h2 className="mb-4 text-base font-semibold text-foreground">Your videos</h2>
+            <section>
+              <h2 className="mb-4 text-base font-semibold text-foreground">Your videos</h2>
           {videoActionError && (
             <p className="mb-3 text-sm text-destructive">{videoActionError}</p>
           )}
@@ -370,42 +445,8 @@ export function ArtistDashboardPage() {
             ))}
           </ul>
         </section>
-
-        <section>
-          <h2 className="mb-4 text-base font-semibold text-foreground">Your tracks</h2>
-          {isLoading && <p className="text-sm text-muted-foreground">Loading…</p>}
-          {!isLoading && tracks.length === 0 && (
-            <p className="text-sm text-muted-foreground">No tracks yet — upload your first track above.</p>
-          )}
-          <ul className="space-y-3">
-            {tracks.map((track) => (
-              <li key={track.id}>
-                <Card
-                  size="sm"
-                  className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <div className="truncate font-medium text-foreground">{track.title}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {track.genre} · {track.isPublished ? 'Published' : 'Draft'} ·{' '}
-                      {track.pricingType === 'FREE'
-                        ? 'Free'
-                        : track.pricingType === 'PAY_WHAT_YOU_WANT'
-                          ? `PWYW from ZMW ${track.minPrice ?? 0}`
-                          : `ZMW ${track.price ?? 0}`}
-                    </div>
-                  </div>
-                  <Link
-                    to={`/tracks/${track.id}`}
-                    className={buttonVariants({ variant: 'ghost', className: 'shrink-0 text-sm' })}
-                  >
-                    View
-                  </Link>
-                </Card>
-              </li>
-            ))}
-          </ul>
-        </section>
+          </>
+        )}
       </div>
     </AppShell>
   );

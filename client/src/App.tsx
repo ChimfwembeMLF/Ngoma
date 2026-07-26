@@ -23,6 +23,7 @@ import { AdminRoute } from './components/AdminRoute';
 import { ThemeProvider } from './providers/ThemeProvider';
 import { ColorModeProvider } from './providers/ColorModeProvider';
 import { BrandingProvider } from './providers/BrandingProvider';
+import { PlayerProvider } from './providers/PlayerProvider';
 
 const queryClient = new QueryClient();
 
@@ -32,8 +33,9 @@ export default function App() {
       <ColorModeProvider>
         <ThemeProvider>
           <BrandingProvider>
-        <BrowserRouter>
-        <Routes>
+            <PlayerProvider>
+              <BrowserRouter>
+                <Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
@@ -147,6 +149,7 @@ export default function App() {
           />
         </Routes>
         </BrowserRouter>
+        </PlayerProvider>
           </BrandingProvider>
         </ThemeProvider>
       </ColorModeProvider>

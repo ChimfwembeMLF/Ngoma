@@ -1,68 +1,66 @@
-import { useEffect, useRef, useState } from 'react';
-import { Howl } from 'howler';
+import { usePlayer } from '@/providers/PlayerProvider';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
+import { Play, Pause, Loader2, SkipBack, SkipForward } from 'lucide-react';
 
-type Props = {
-  src: string;
-  title: string;
-  artistName?: string;
-};
+export function AudioPlayer() {
+  const { currentTrack, isPlaying, isLoading, progress, duration, pauseTrack, resumeTrack } = usePlayer();
 
-export function AudioPlayer({ src, title, artistName }: Props) {
-  const howlRef = useRef<Howl | null>(null);
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
+  if (!currentTrack) return null;
 
-  useEffect(() => {
-    howlRef.current?.unload();
-    howlRef.current = new Howl({
-      src: [src],
-      html5: true,
-      onend: () => setPlaying(false),
-    });
-    return () => {
-      howlRef.current?.unload();
-    };
-  }, [src]);
-
-  useEffect(() => {
-    if (!playing) return;
-    const id = window.setInterval(() => {
-      const howl = howlRef.current;
-      if (!howl) return;
-      const seek = howl.seek() as number;
-      const duration = howl.duration();
-      if (duration) setProgress((seek / duration) * 100);
-    }, 500);
-    return () => window.clearInterval(id);
-  }, [playing]);
-
-  const toggle = () => {
-    const howl = howlRef.current;
-    if (!howl) return;
-    if (playing) {
-      howl.pause();
-      setPlaying(false);
-    } else {
-      howl.play();
-      setPlaying(true);
-    }
-  };
+  const progressPercent = duration ? (progress / duration) * 100 : 0;
 
   return (
-    <Card className="p-4 shadow-sm">
-      {artistName && <div className="text-sm text-muted-foreground">{artistName}</div>}
-      <div className="mb-3 font-semibold text-foreground">{title}</div>
-      <div className="mb-3 h-1.5 rounded-full bg-muted">
+    <div className="fixed bottom-0 left-0 right-0 z-50 sm:bottom-0 border-t border-border bg-background/95 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+      <div className="absolute top-0 left-0 h-1 w-full bg-muted">
         <div
-          className="h-1.5 rounded-full bg-primary transition-all"
-          style={{ width: `${progress}%` }}
+          className="h-1 bg-primary transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
         />
       </div>
-      <Button type="button" onClick={toggle} variant="default">
-        {playing ? 'Pause' : 'Play'}
-      </Button>
-    </Card>
+      
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-2 sm:px-8">
+        <div className="flex items-center gap-3 overflow-hidden">
+          {currentTrack.coverUrl ? (
+            <img src={currentTrack.coverUrl} alt="Cover" className="h-10 w-10 shrink-0 rounded-md object-cover sm:h-12 sm:w-12" />
+          ) : (
+            <div className="h-10 w-10 shrink-0 rounded-md bg-muted sm:h-12 sm:w-12" />
+          )}
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-foreground sm:text-base">
+              {currentTrack.title}
+            </p>
+            <p className="truncate text-xs text-muted-foreground sm:text-sm">
+              {currentTrack.artistName}
+            </p>
+          </div>
+        </div>
+
+        <div className="flex shrink-0 items-center justify-center gap-2 sm:gap-4">
+          <Button variant="ghost" size="icon" className="hidden sm:flex" disabled={isLoading}>
+            <SkipBack className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant="default"
+            size="icon"
+            className="h-10 w-10 rounded-full sm:h-12 sm:w-12"
+            onClick={() => (isPlaying ? pauseTrack() : resumeTrack())}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <Loader2 className="h-5 w-5 animate-spin sm:h-6 sm:w-6" />
+            ) : isPlaying ? (
+              <Pause className="h-5 w-5 fill-current sm:h-6 sm:w-6" />
+            ) : (
+              <Play className="h-5 w-5 fill-current ml-1 sm:h-6 sm:w-6" />
+            )}
+          </Button>
+
+          <Button variant="ghost" size="icon" className="hidden sm:flex" disabled={isLoading}>
+            <SkipForward className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

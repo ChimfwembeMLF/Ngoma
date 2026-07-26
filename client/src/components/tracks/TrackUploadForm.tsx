@@ -10,6 +10,27 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { FormWizard } from '@/components/forms';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+export const GENRE_OPTIONS = [
+  'Afrobeats',
+  'Amapiano',
+  'Hip Hop',
+  'R&B',
+  'Pop',
+  'Gospel',
+  'Dancehall',
+  'Reggae',
+  'Jazz',
+  'Traditional',
+  'Other'
+];
 
 const PRICING_OPTIONS: { value: PricingType; label: string }[] = [
   { value: 'SET_PRICE', label: 'Set price' },
@@ -102,15 +123,19 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="track-genre">Genre</Label>
-            <Input
-              id="track-genre"
-              placeholder="Genre"
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="track-genre">Genre</Label>
+              <Select value={genre} onValueChange={setGenre}>
+                <SelectTrigger id="track-genre" className="w-full">
+                  <SelectValue placeholder="Select genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  {GENRE_OPTIONS.map((g) => (
+                    <SelectItem key={g} value={g}>{g}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
         </div>
       ),
     },

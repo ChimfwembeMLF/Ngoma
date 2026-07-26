@@ -5,6 +5,10 @@ import { cn } from '@/lib/utils';
 import { useBranding } from '@/providers/BrandingProvider';
 import { buttonVariants } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
+import { BottomNav } from '@/components/layout/BottomNav';
+import { AudioPlayer } from '@/components/player/AudioPlayer';
+import { usePlayer } from '@/providers/PlayerProvider';
+import { ReloadPrompt } from '@/components/pwa/ReloadPrompt';
 
 type MaxWidth = '6xl' | '4xl' | '3xl' | '2xl' | 'md';
 
@@ -51,6 +55,7 @@ export function AppShell({
   const { branding } = useBranding();
   const layout = branding.layoutTemplateId;
   const bgActive = hasActiveBackground(branding);
+  const { currentTrack } = usePlayer();
 
   return (
     <div className={cn('relative min-h-screen text-foreground', !bgActive && 'bg-background', className)}>
@@ -78,7 +83,7 @@ export function AppShell({
               <span className="text-lg font-bold text-foreground">Ngoma</span>
             )}
           </Link>
-          <nav className={cn('flex flex-wrap items-center gap-2', layoutNavClasses[layout])}>
+          <nav className={cn('hidden sm:flex flex-wrap items-center gap-2', layoutNavClasses[layout])}>
             <Link
               to="/discover"
               className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'normal-case' })}
@@ -115,13 +120,17 @@ export function AppShell({
       </header>
       <main
         className={cn(
-          'relative z-10 mx-auto w-full px-4 py-8 sm:px-8',
+          'relative z-10 mx-auto w-full px-4 pt-8 sm:px-8',
           maxWidthClasses[maxWidth],
           centered && 'flex min-h-[calc(100vh-4rem)] items-center justify-center',
+          currentTrack ? 'pb-32 sm:pb-24' : 'pb-20 sm:pb-8'
         )}
       >
         {children}
       </main>
+      <AudioPlayer />
+      <BottomNav />
+      <ReloadPrompt />
     </div>
   );
 }

@@ -1,66 +1,50 @@
+# Dokploy: paste env into Compose → Environment.
+#
 services:
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: ngoma
-      POSTGRES_PASSWORD: ngoma
-      POSTGRES_DB: ngoma
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ngoma -d ngoma"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
-      context: ./api
-      dockerfile: Dockerfile
-    environment:
-      NODE_ENV: development
-      PORT: 4000
-      DB_HOST: postgres
-      DB_PORT: 5432
-      DB_USERNAME: ngoma
-      DB_PASSWORD: ngoma
-      DB_DATABASE: ngoma
-      REDIS_URL: redis://redis:6379
-      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret}
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
+      context: .
+      dockerfile: api/Dockerfile
     ports:
       - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=${PORT:-4000}
+    networks:
+      - dokploy-network
+    restart: unless-stopped
+    healthcheck:
+      disable: true
 
   client:
     build:
-      context: ./client
-      dockerfile: Dockerfile
-    environment:
-      VITE_API_BASE_URL: http://api:4000
+      context: .
+      dockerfile: client/Dockerfile
+      args:
+        - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
     ports:
       - "5173:5173"
-    depends_on:
-      - api
+    networks:
+      - dokploy-network
+    restart: unless-stopped
 
-volumes:
-  postgres_data:
-  redis_data:
+  # Optional: run TypeORM migrations (Nest). Usage:
+  #   docker compose --profile migrate run --rm migrate
+  migrate:
+    profiles: ["migrate"]
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+    entrypoint: ["sh", "-c", "yarn migrations:run"]
+    restart: "no"
+
+networks:
+  dokploy-network:
+    name: dokploy-network
+    external: true

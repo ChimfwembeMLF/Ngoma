@@ -3,18 +3,22 @@ WORKDIR /app
 RUN corepack enable
 
 FROM base AS deps
-COPY package.json yarn.lock* .yarnrc.yml* ./
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY api/package.json ./api/package.json
+COPY client/package.json ./client/package.json
 RUN yarn install --immutable || yarn install
 
 FROM base AS build
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+WORKDIR /app/api
 RUN yarn build
 
 FROM base AS runner
 ENV NODE_ENV=production
-COPY --from=build /app/dist ./dist
+WORKDIR /app/api
+COPY --from=build /app/api/dist ./dist
 COPY --from=build /app/node_modules ./node_modules
-COPY package.json ./
+COPY --from=build /app/api/package.json ./
 EXPOSE 4000
 CMD ["node", "dist/main.js"]

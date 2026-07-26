@@ -1,13 +1,27 @@
-FROM node:20-alpine AS base
+FROM node:20-alpine AS build
 WORKDIR /app
+
+ARG VITE_API_BASE_URL
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+
 RUN corepack enable
 
-FROM base AS deps
-COPY package.json yarn.lock* ./
-RUN yarn install || true
+ENV NODE_ENV=development
 
-FROM base AS runner
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+COPY package.json yarn.lock .yarnrc.yml ./
+COPY api/package.json ./api/package.json
+COPY client/package.json ./client/package.json
+
+RUN yarn install --immutable
+
+COPY client ./client
+WORKDIR /app/client
+
+RUN yarn build
+
+FROM nginx:alpine
+COPY --from=build /app/client/dist /usr/share/nginx/html
+COPY client/nginx.conf /etc/nginx/conf.d/default.conf
+
 EXPOSE 5173
-CMD ["yarn", "dev", "--host", "0.0.0.0"]
+CMD ["nginx", "-g", "daemon off;"]

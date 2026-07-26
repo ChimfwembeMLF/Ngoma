@@ -61,6 +61,7 @@ export function useAuth() {
   const logout = () => {
     clearTokens();
     qc.removeQueries({ queryKey: ['auth', 'me'] });
+    window.location.href = '/auth';
   };
 
   return { meQuery, loginMutation, registerMutation, logout };

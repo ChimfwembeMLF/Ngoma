@@ -14,7 +14,7 @@ export function typeOrmConfigFactory(
     database: configService.get<string>('DB_DATABASE') || 'ngoma',
     entities: [__dirname + '/../**/*.entity.{js,ts}'],
     migrations: [__dirname + '/../../database/migrations/*.{ts,js}'],
-    migrationsRun: configService.get<string>('NODE_ENV') === 'production',
+    migrationsRun: false, // Turned off because it crashes on existing schema in prod
     synchronize: configService.get<string>('DB_SYNCHRONIZE') === 'true',
     namingStrategy: new SnakeNamingStrategy(),
   };

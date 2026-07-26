@@ -3,6 +3,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import { ConfigService } from '@nestjs/config';
+import { DataSource } from 'typeorm';
 import { AppModule } from './app.module';
 import { setupSwagger } from './setup-swagger';
 import { isS3Configured } from './common/storage.config';
@@ -35,6 +36,25 @@ async function bootstrap() {
   const port = Number(process.env.PORT) || 4000;
   await app.listen(port, '0.0.0.0');
   console.log(`Ngoma API listening on http://0.0.0.0:${port}`);
+
+  // Safe manual setup of search_vector since migrations fail on existing prod DB
+  try {
+    const dataSource = app.get(DataSource);
+    await dataSource.query(`ALTER TABLE tracks ADD COLUMN IF NOT EXISTS search_vector tsvector`);
+    await dataSource.query(`CREATE INDEX IF NOT EXISTS idx_tracks_search ON tracks USING GIN(search_vector)`);
+    await dataSource.query(`
+      UPDATE tracks t
+      SET search_vector = to_tsvector(
+        'english',
+        coalesce(t.title, '') || ' ' || coalesce(t.genre, '') || ' ' || coalesce(a.artist_name, '')
+      )
+      FROM artists a
+      WHERE t.artist_id = a.id AND t.search_vector IS NULL
+    `);
+    console.log('Search vector initialized successfully.');
+  } catch (e) {
+    console.log('Search vector setup skipped or failed:', e.message);
+  }
 }
 
 bootstrap();

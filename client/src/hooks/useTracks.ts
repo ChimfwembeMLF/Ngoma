@@ -72,11 +72,62 @@ export function useUpdateTrack() {
 export function useUploadTrackFiles() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, audio, coverArt }: { id: string; audio?: File; coverArt?: File }) => {
-      const form = new FormData();
-      if (audio) form.append('audio', audio);
-      if (coverArt) form.append('coverArt', coverArt);
-      return apiUpload(`/api/v1/tracks/${id}/upload`, form);
+    mutationFn: async ({ id, audio, coverArt }: { id: string; audio?: File; coverArt?: File }) => {
+      let audioUrl, coverArtUrl;
+
+      // Upload Audio via Presigned URL
+      if (audio) {
+        const ext = audio.name.split('.').pop() || 'mp3';
+        const { data: presigned } = await apiFetch<{ data: { uploadUrl: string; publicUrl: string; storagePath: string } }>(
+          `/api/v1/tracks/${id}/presigned-url`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              fileType: 'audio',
+              extension: ext,
+              contentType: audio.type,
+            }),
+          }
+        );
+        
+        const uploadRes = await fetch(presigned.uploadUrl, {
+          method: 'PUT',
+          body: audio,
+          headers: { 'Content-Type': audio.type },
+        });
+        if (!uploadRes.ok) throw new Error('Direct audio upload failed');
+        audioUrl = presigned.publicUrl;
+      }
+
+      // Upload Cover Art via Presigned URL
+      if (coverArt) {
+        const ext = coverArt.name.split('.').pop() || 'jpg';
+        const { data: presigned } = await apiFetch<{ data: { uploadUrl: string; publicUrl: string; storagePath: string } }>(
+          `/api/v1/tracks/${id}/presigned-url`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              fileType: 'cover',
+              extension: ext,
+              contentType: coverArt.type,
+            }),
+          }
+        );
+
+        const uploadRes = await fetch(presigned.uploadUrl, {
+          method: 'PUT',
+          body: coverArt,
+          headers: { 'Content-Type': coverArt.type },
+        });
+        if (!uploadRes.ok) throw new Error('Direct cover upload failed');
+        coverArtUrl = presigned.publicUrl;
+      }
+
+      // Confirm with Backend
+      return apiFetch(`/api/v1/tracks/${id}/confirm-upload`, {
+        method: 'POST',
+        body: JSON.stringify({ audioUrl, coverArtUrl }),
+      });
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tracks'] }),
   });

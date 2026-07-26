@@ -144,8 +144,8 @@ export class S3StorageService {
     });
 
     try {
-      const uploadUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
-      const publicUrl = this.getPublicUrl(key);
+      const uploadUrl = await getSignedUrl(client as any, command as any, { expiresIn: 3600 });
+      const publicUrl = getS3PublicUrl(key, this.bucket, this.config);
       return { uploadUrl, publicUrl, storagePath: key };
     } catch (error: any) {
       this.logger.error(`S3 presigned URL failed: ${error.message}`);

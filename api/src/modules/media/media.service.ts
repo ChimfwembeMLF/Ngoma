@@ -42,6 +42,17 @@ export class MediaService {
     return this.s3.isEnabled();
   }
 
+  async createPresignedUrl(params: {
+    folder: string;
+    extension: string;
+    contentType: string;
+  }) {
+    if (!this.usesS3()) {
+      throw new BadRequestException('Presigned URLs are only available when using S3 storage');
+    }
+    return this.s3.createPresignedUrl(params);
+  }
+
   async saveAudio(file: Express.Multer.File): Promise<SaveAudioResult> {
     if (!file?.buffer?.length) throw new BadRequestException('Audio file is required');
     if (file.size > MAX_AUDIO_BYTES) {

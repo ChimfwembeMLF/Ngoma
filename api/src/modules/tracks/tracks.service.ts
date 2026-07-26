@@ -10,6 +10,7 @@ import { Track, PricingType } from './entities/track.entity';
 import { DownloadAccess } from './entities/download-access.entity';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
+import { PresignedUrlDto, FileType } from './dto/presigned-url.dto';
 import { MediaService } from '../media/media.service';
 import { Artist } from '../artists/entities/artist.entity';
 import { AdsService } from '../ads/ads.service';
@@ -164,6 +165,38 @@ export class TracksService {
     if (coverArt) {
       track.coverArtUrl = await this.media.saveImage(coverArt);
     }
+    const saved = await this.tracksRepo.save(track);
+    await this.syncSearchVector(saved.id);
+    return { success: true, data: saved };
+  }
+
+  async createPresignedUploadUrl(
+    artistId: string,
+    id: string,
+    dto: PresignedUrlDto,
+  ) {
+    const track = await this.getOwnedTrack(artistId, id);
+    let folder = 'tracks';
+    if (dto.fileType === FileType.COVER) folder = 'covers';
+    else if (dto.fileType === FileType.VIDEO) folder = 'videos';
+
+    const result = await this.media.createPresignedUrl({
+      folder,
+      extension: dto.extension,
+      contentType: dto.contentType,
+    });
+    return { success: true, data: result };
+  }
+
+  async confirmUpload(
+    artistId: string,
+    id: string,
+    dto: { audioUrl?: string; coverArtUrl?: string },
+  ) {
+    const track = await this.getOwnedTrack(artistId, id);
+    if (dto.audioUrl) track.audioFileUrl = dto.audioUrl;
+    if (dto.coverArtUrl) track.coverArtUrl = dto.coverArtUrl;
+    
     const saved = await this.tracksRepo.save(track);
     await this.syncSearchVector(saved.id);
     return { success: true, data: saved };

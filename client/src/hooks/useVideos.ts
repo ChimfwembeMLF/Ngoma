@@ -111,26 +111,58 @@ export function useUploadVideoFiles() {
       thumbnail?: File;
       duration?: number;
     }) => {
-      const form = new FormData();
-      if (video) form.append('video', video);
-      if (thumbnail) form.append('thumbnail', thumbnail);
-      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
-      const token = getAccessToken();
-      const headers = new Headers();
-      if (token) headers.set('Authorization', `Bearer ${token}`);
-      if (duration != null && Number.isFinite(duration)) {
-        headers.set('x-video-duration', String(Math.round(duration)));
+      let videoUrl, thumbnailUrl;
+
+      if (video) {
+        const ext = video.name.split('.').pop() || 'mp4';
+        const { data: presigned } = await apiFetch<{ data: { uploadUrl: string; publicUrl: string; storagePath: string } }>(
+          `/api/v1/videos/${id}/presigned-url`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              fileType: 'video',
+              extension: ext,
+              contentType: video.type,
+            }),
+          }
+        );
+        
+        const uploadRes = await fetch(presigned.uploadUrl, {
+          method: 'PUT',
+          body: video,
+          headers: { 'Content-Type': video.type },
+        });
+        if (!uploadRes.ok) throw new Error('Direct video upload failed');
+        videoUrl = presigned.publicUrl;
       }
-      const res = await fetch(`${baseUrl}/api/v1/videos/${id}/upload`, {
+
+      if (thumbnail) {
+        const ext = thumbnail.name.split('.').pop() || 'jpg';
+        const { data: presigned } = await apiFetch<{ data: { uploadUrl: string; publicUrl: string; storagePath: string } }>(
+          `/api/v1/videos/${id}/presigned-url`,
+          {
+            method: 'POST',
+            body: JSON.stringify({
+              fileType: 'cover',
+              extension: ext,
+              contentType: thumbnail.type,
+            }),
+          }
+        );
+
+        const uploadRes = await fetch(presigned.uploadUrl, {
+          method: 'PUT',
+          body: thumbnail,
+          headers: { 'Content-Type': thumbnail.type },
+        });
+        if (!uploadRes.ok) throw new Error('Direct thumbnail upload failed');
+        thumbnailUrl = presigned.publicUrl;
+      }
+
+      return apiFetch(`/api/v1/videos/${id}/confirm-upload`, {
         method: 'POST',
-        headers,
-        body: form,
+        body: JSON.stringify({ videoUrl, thumbnailUrl, duration }),
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(data.error || data.message || `Upload failed (${res.status})`);
-      }
-      return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ['videos'] }),
   });

@@ -10,6 +10,7 @@ import { extname } from 'path';
 import { Video } from './entities/video.entity';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
+import { PresignedUrlDto, FileType } from '../tracks/dto/presigned-url.dto';
 import { MediaService } from '../media/media.service';
 import { Artist } from '../artists/entities/artist.entity';
 
@@ -118,6 +119,37 @@ export class VideosService {
     if (thumbnail) {
       video.thumbnailUrl = await this.media.saveImage(thumbnail);
     }
+    const saved = await this.videosRepo.save(video);
+    return { success: true, data: saved };
+  }
+
+  async createPresignedUploadUrl(
+    artistId: string,
+    id: string,
+    dto: PresignedUrlDto,
+  ) {
+    const video = await this.getOwnedVideo(artistId, id);
+    let folder = 'videos';
+    if (dto.fileType === FileType.COVER) folder = 'covers';
+
+    const result = await this.media.createPresignedUrl({
+      folder,
+      extension: dto.extension,
+      contentType: dto.contentType,
+    });
+    return { success: true, data: result };
+  }
+
+  async confirmUpload(
+    artistId: string,
+    id: string,
+    dto: { videoUrl?: string; thumbnailUrl?: string; duration?: number },
+  ) {
+    const video = await this.getOwnedVideo(artistId, id);
+    if (dto.videoUrl) video.videoFileUrl = dto.videoUrl;
+    if (dto.thumbnailUrl) video.thumbnailUrl = dto.thumbnailUrl;
+    if (dto.duration != null) video.duration = dto.duration;
+    
     const saved = await this.videosRepo.save(video);
     return { success: true, data: saved };
   }

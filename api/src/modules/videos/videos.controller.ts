@@ -17,6 +17,7 @@ import { Request } from 'express';
 import { VideosService } from './videos.service';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
+import { PresignedUrlDto } from '../tracks/dto/presigned-url.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -75,12 +76,42 @@ export class VideosController {
     return this.videos.softDelete(req.user?.['artistId'] as string, id);
   }
 
+  @Post(':id/presigned-url')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ARTIST)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get presigned URL for direct S3 upload' })
+  getPresignedUrl(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: PresignedUrlDto,
+  ) {
+    return this.videos.createPresignedUploadUrl(
+      req.user?.['artistId'] as string,
+      id,
+      dto,
+    );
+  }
+
+  @Post(':id/confirm-upload')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ARTIST)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Confirm direct S3 upload' })
+  confirmUpload(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: { videoUrl?: string; thumbnailUrl?: string; duration?: number },
+  ) {
+    return this.videos.confirmUpload(req.user?.['artistId'] as string, id, dto);
+  }
+
   @Post(':id/upload')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ARTIST)
   @ApiBearerAuth()
   @ApiConsumes('multipart/form-data')
-  @ApiOperation({ summary: 'Upload video file and optional thumbnail' })
+  @ApiOperation({ summary: 'Upload video file and optional thumbnail (Legacy)' })
   @UseInterceptors(
     FileFieldsInterceptor([
       { name: 'video', maxCount: 1 },

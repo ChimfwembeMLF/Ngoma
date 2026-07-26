@@ -44,6 +44,9 @@ export function AdminOverviewPage() {
           <Link to="/admin/branding" className={buttonVariants({ variant: 'outline' })}>
             Branding
           </Link>
+          <Link to="/admin/ads" className={buttonVariants({ variant: 'outline' })}>
+            Ads
+          </Link>
           {dashboard?.paymentHealth && dashboard.paymentHealth.pendingPayouts > 0 && (
             <Link to="/admin/payouts" className={buttonVariants({ variant: 'default' })}>
               Payouts ({dashboard.paymentHealth.pendingPayouts})
@@ -91,6 +94,11 @@ export function AdminOverviewPage() {
             >
               {dashboard?.trends.platformFees && <TrendBadge trend={dashboard.trends.platformFees} />}
             </StatCard>
+            <StatCard
+              label="Ad impressions (30d)"
+              value={dashboard ? formatInteger(dashboard.kpis.adImpressions ?? 0) : '—'}
+              isLoading={isLoading}
+            />
           </div>
           {!isLoading && dashboard && (
             <p className="mt-3 text-sm text-muted-foreground">

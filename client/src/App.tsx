@@ -16,6 +16,7 @@ import { AdminOverviewPage } from './pages/AdminOverviewPage';
 import { AdminThemePage } from './pages/AdminThemePage';
 import { AdminBrandingPage } from './pages/AdminBrandingPage';
 import { AdminPayoutsPage } from './pages/AdminPayoutsPage';
+import { AdminAdsPage } from './pages/AdminAdsPage';
 import { VideoPage } from './pages/VideoPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
@@ -123,6 +124,14 @@ export default function App() {
             element={
               <AdminRoute>
                 <AdminPayoutsPage />
+              </AdminRoute>
+            }
+          />
+          <Route
+            path="/admin/ads"
+            element={
+              <AdminRoute>
+                <AdminAdsPage />
               </AdminRoute>
             }
           />

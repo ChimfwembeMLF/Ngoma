@@ -45,8 +45,8 @@ export type AnimatedPresetMeta = {
 };
 
 export const DEFAULT_BRANDING: BrandingConfig = {
-  logoUrl: null,
-  logoWidth: 120,
+  logoUrl: '/ngoma-logo.png',
+  logoWidth: 140,
   background: {
     type: 'none',
     imageUrl: null,

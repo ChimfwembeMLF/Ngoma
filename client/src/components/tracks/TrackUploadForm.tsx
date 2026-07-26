@@ -14,13 +14,13 @@ import { FormWizard } from '@/components/forms';
 const PRICING_OPTIONS: { value: PricingType; label: string }[] = [
   { value: 'SET_PRICE', label: 'Set price' },
   { value: 'PAY_WHAT_YOU_WANT', label: 'Pay what you want' },
-  { value: 'FREE', label: 'Free' },
+  { value: 'FREE', label: 'Free download (ad-supported)' },
 ];
 
 const PRICING_LABELS: Record<PricingType, string> = {
   SET_PRICE: 'Set price',
   PAY_WHAT_YOU_WANT: 'Pay what you want',
-  FREE: 'Free',
+  FREE: 'Free download (ad-supported)',
 };
 
 export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
@@ -149,6 +149,12 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
               ))}
             </div>
           </fieldset>
+
+          {pricingType === 'FREE' && (
+            <p className="text-sm text-muted-foreground">
+              Listeners watch a short ad before downloading. You earn exposure; Ngoma earns from ads.
+            </p>
+          )}
 
           {pricingType === 'SET_PRICE' && (
             <div className="space-y-2">

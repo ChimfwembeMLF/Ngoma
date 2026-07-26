@@ -90,6 +90,6 @@ Track detail exposes whether the current user can download, so the UI never prom
 
 ## Out of Scope
 
-- Ad-supported anonymous free downloads (deferred per PROJECT REQUIREMENTS).
+- Ad-supported anonymous free downloads (deferred per PROJECT REQUIREMENTS) → **see feature 023-ad-supported-free-downloads**
 - Changing stream rules (stream remains public for published tracks).
 - Artist self-download of own catalog without purchase.

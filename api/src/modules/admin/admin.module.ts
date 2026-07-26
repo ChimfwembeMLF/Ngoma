@@ -8,6 +8,7 @@ import { PlaylistsModule } from '../playlists/playlists.module';
 import { PlatformModule } from '../platform/platform.module';
 import { PaymentsModule } from '../payments/payments.module';
 import { PayoutsModule } from '../payouts/payouts.module';
+import { AdsModule } from '../ads/ads.module';
 import { AdminService } from './admin.service';
 import { AdminController } from './admin.controller';
 
@@ -18,6 +19,7 @@ import { AdminController } from './admin.controller';
     PlatformModule,
     PaymentsModule,
     PayoutsModule,
+    AdsModule,
   ],
   providers: [AdminService],
   controllers: [AdminController],

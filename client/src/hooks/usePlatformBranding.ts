@@ -19,5 +19,10 @@ export function usePlatformBranding() {
 export function selectBranding(data: BrandingResponse | undefined): BrandingConfig {
   if (!data?.data) return DEFAULT_BRANDING;
   const { updatedAt: _, ...branding } = data.data;
-  return { ...DEFAULT_BRANDING, ...branding, background: { ...DEFAULT_BRANDING.background, ...data.data.background } };
+  return {
+    ...DEFAULT_BRANDING,
+    ...branding,
+    logoUrl: branding.logoUrl ?? DEFAULT_BRANDING.logoUrl,
+    background: { ...DEFAULT_BRANDING.background, ...data.data.background },
+  };
 }

@@ -81,6 +81,7 @@ export type AdminDashboardData = {
     activeArtists: number;
     platformFees: number;
     completedTransactions: number;
+    adImpressions?: number;
     currency: string;
   };
   trends: {

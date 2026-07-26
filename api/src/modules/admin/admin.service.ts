@@ -9,6 +9,7 @@ import { PlaylistsService } from '../playlists/playlists.service';
 import { PlatformService } from '../platform/platform.service';
 import { PaymentsService } from '../payments/payments.service';
 import { PayoutsService } from '../payouts/payouts.service';
+import { AdsService } from '../ads/ads.service';
 import type { BrandingConfig } from '../../common/branding.defaults';
 import { CreateCuratedPlaylistDto } from '../playlists/dto/create-curated-playlist.dto';
 import { UpdateCuratedPlaylistDto } from '../playlists/dto/update-curated-playlist.dto';
@@ -73,6 +74,7 @@ export class AdminService {
     private readonly platform: PlatformService,
     private readonly payments: PaymentsService,
     private readonly payouts: PayoutsService,
+    private readonly ads: AdsService,
   ) {}
 
   async getAdminDashboard() {
@@ -95,6 +97,7 @@ export class AdminService {
       recentTracks,
       recentPayments,
       pendingPayouts,
+      adImpressions,
     ] = await Promise.all([
       this.usersRepo.count(),
       this.tracksRepo.count({ where: { isActive: true } }),
@@ -135,6 +138,7 @@ export class AdminService {
         select: ['id', 'amount', 'currency', 'completedAt', 'createdAt'],
       }),
       this.payouts.countPending(),
+      this.ads.countImpressionsLast30Days(),
     ]);
 
     const recentActivity = [
@@ -174,6 +178,7 @@ export class AdminService {
           activeArtists,
           platformFees: roundMoney(toNumber(platformFeesRow?.total)),
           completedTransactions,
+          adImpressions,
           currency: 'ZMW' as const,
         },
         trends: {

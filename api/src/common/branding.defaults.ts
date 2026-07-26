@@ -28,7 +28,7 @@ export type SavedBrandingTemplate = {
 export const LAYOUT_TEMPLATE_IDS: LayoutTemplateId[] = ['default', 'minimal', 'hero'];
 
 export const DEFAULT_BRANDING: BrandingConfig = {
-  logoUrl: null,
+  logoUrl: '/ngoma-logo.png',
   logoWidth: 120,
   background: {
     type: 'none',

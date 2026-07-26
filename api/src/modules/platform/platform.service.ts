@@ -33,6 +33,10 @@ import {
   resolvePresetTokens,
   resolveThemeFromSettings,
 } from '../../common/theme-presets';
+import {
+  mergeAdsConfig,
+  type AdsConfig,
+} from '../../common/ads-config.util';
 import { MediaService } from '../media/media.service';
 import { PlatformSettings } from './entities/platform-settings.entity';
 
@@ -332,5 +336,17 @@ export class PlatformService {
     row.theme = {};
     await this.settingsRepo.save(row);
     return this.buildThemePayload(row);
+  }
+
+  getAdsConfig(row: PlatformSettings): AdsConfig {
+    return mergeAdsConfig(row.adsConfig as Partial<AdsConfig>);
+  }
+
+  async getAdsPublicConfig() {
+    const row = await this.getRow();
+    return {
+      success: true,
+      data: this.getAdsConfig(row),
+    };
   }
 }

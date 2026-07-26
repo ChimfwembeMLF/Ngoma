@@ -39,6 +39,24 @@
 | **Fans** | Music listeners across Africa and the diaspora |
 | **Admins** | Platform operators and moderators |
 
+### 1.4 Monetization Model
+
+Ngoma generates platform revenue from multiple sources. Artists choose pricing per track at upload time.
+
+| Revenue source | When it applies | Platform take (MVP) | Artist benefit |
+|----------------|-----------------|---------------------|----------------|
+| **Paid track downloads** | `SET_PRICE` or `PAY_WHAT_YOU_WANT` — listener pays via mobile money | **30%** platform fee | Direct sales income |
+| **Tips** | Listener tips artist from track page | **5%** platform fee | Voluntary support |
+| **Ad-supported free downloads** | `FREE` pricing — listener watches a short house ad before download | **100%** ad revenue to platform (MVP); impressions tracked | Exposure, funnel to paid releases & tips |
+| **Subscriptions / exclusive** | Future (`EXCLUSIVE` pricing type) | TBD | Gated content |
+
+**Free download (ad-supported)** means:
+- **Stream** — free, no ad (discovery).
+- **Download** — free to the listener (no mobile money), but requires viewing an admin-managed promotional banner for a configurable countdown (default 5 seconds) before the file is delivered.
+- Artists label this option **"Free download (ad-supported)"** in the upload wizard.
+
+Implementation: feature spec `specs/023-ad-supported-free-downloads/`. Download access UX: `specs/022-free-track-downloads/`.
+
 ---
 
 ## 2. Brand & Visual Identity
@@ -516,7 +534,7 @@
 │  ┌─ Pricing Model ─────────────────────────────────────┐    │
 │  │  ◉ Set Price: [K] [___5.00___] per download       │    │
 │  │  ○ Pay What You Want: Min [K] [___1.00___]        │    │
-│  │  ○ Free Download (Ad-supported)                    │    │
+│  │  ○ Free Download (Ad-supported) — listener sees short ad before download │
 │  │  ○ Exclusive Content (Subscription only)          │    │
 │  └──────────────────────────────────────────────────────────┘    │
 │                                                                   │
@@ -1030,6 +1048,24 @@
 
 #### 4.2.2 Download Interface
 
+**Paid tracks** — mobile money checkout (see §4.3).
+
+**Free tracks (ad-supported)** — before download:
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│  ⬇️ Download Track (Free — ad-supported)                          │
+│  ──────────────────────────────────────────────────────────────── │
+│  Track: Summer Vibes · Artist: Ngoma Artist                        │
+│  ┌─ Sponsored ─────────────────────────────────────────────┐      │
+│  │  [Banner image — house ad / partner promo]               │      │
+│  │  Download available in 5…4…3…                            │      │
+│  └──────────────────────────────────────────────────────────┘      │
+│  [Download now] (enabled after countdown)  [Cancel]                │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+**Paid track download flow (unchanged)**:
+
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
 │  ⬇️ Download Track                                              │
@@ -1354,8 +1390,9 @@
 │  │  ────────────────────┼───────────┼────────────│      │      │
 │  │  Track Downloads     │ K30,456  │ 66.7%      │      │      │
 │  │  Tips                │ K8,234   │ 18.0%      │      │      │
+│  │  Ad-supported DLs    │ K2,420   │ 5.3%       │      │      │
 │  │  Subscriptions       │ K4,568   │ 10.0%      │      │      │
-│  │  Other               │ K2,420   │ 5.3%       │      │      │
+│  │  Other               │ K0       │ 0%         │      │      │
 │  └──────────────────────────────────────────────────────────┘    │
 │                                                                   │
 │  ┌─ Monthly Trend ──────────────────────────────────────┐      │
@@ -2817,10 +2854,10 @@ export const throttleOptionsFromConfig = (
 - [ ] Export reports (CSV/PDF)
 
 #### Week 15-16: Pricing Models
-- [ ] "Pay What You Want" pricing
-- [ ] Free downloads (ad-supported)
+- [x] "Pay What You Want" pricing
+- [ ] Free downloads (ad-supported) — **planned** [`specs/023-ad-supported-free-downloads/`](../specs/023-ad-supported-free-downloads/spec.md)
 - [ ] Exclusive content (subscription gate)
-- [ ] Tipping system
+- [x] Tipping system
 - [ ] Bulk pricing for albums
 
 #### Week 17-18: Discovery Features

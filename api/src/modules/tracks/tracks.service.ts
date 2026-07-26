@@ -12,6 +12,7 @@ import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { MediaService } from '../media/media.service';
 import { Artist } from '../artists/entities/artist.entity';
+import { AdsService } from '../ads/ads.service';
 
 @Injectable()
 export class TracksService {
@@ -23,6 +24,7 @@ export class TracksService {
     @InjectRepository(Artist)
     private readonly artistsRepo: Repository<Artist>,
     private readonly media: MediaService,
+    private readonly ads: AdsService,
   ) {}
 
   async create(artistId: string, dto: CreateTrackDto) {
@@ -178,12 +180,20 @@ export class TracksService {
     return this.fileStream(track.audioFileUrl, 'audio/mpeg');
   }
 
-  async download(id: string, userId: string) {
+  async download(id: string, userId: string, adSessionId?: string) {
     const track = await this.tracksRepo.findOne({ where: { id, isActive: true } });
     if (!track || !track.isPublished) throw new NotFoundException('Track not found');
     if (!track.audioFileUrl) throw new NotFoundException('Audio not available');
 
-    if (track.pricingType !== PricingType.FREE) {
+    if (track.pricingType === PricingType.FREE) {
+      const adsConfig = await this.ads.getConfig();
+      if (adsConfig.adsEnabled) {
+        if (!adSessionId) {
+          throw new ForbiddenException('Ad completion required');
+        }
+        await this.ads.validateSessionForDownload(adSessionId, userId, id);
+      }
+    } else {
       const access = await this.accessRepo.findOne({
         where: { userId, trackId: id },
       });

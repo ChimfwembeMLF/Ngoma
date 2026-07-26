@@ -16,6 +16,7 @@ import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { TracksService } from './tracks.service';
+import { AdsService } from '../ads/ads.service';
 import { CreateTrackDto } from './dto/create-track.dto';
 import { UpdateTrackDto } from './dto/update-track.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -27,7 +28,10 @@ import { UserRole } from '../user/entities/user.entity';
 @ApiTags('Tracks')
 @Controller('api/v1/tracks')
 export class TracksController {
-  constructor(private readonly tracks: TracksService) {}
+  constructor(
+    private readonly tracks: TracksService,
+    private readonly ads: AdsService,
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'List published tracks' })
@@ -122,11 +126,20 @@ export class TracksController {
     return this.tracks.stream(id, req.user?.['sub'] as string | undefined);
   }
 
+  @Post(':id/ad-session')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Start ad gate session for free track download' })
+  startAdSession(@Param('id') id: string, @Req() req: Request) {
+    return this.ads.createSession(id, req.user?.['sub'] as string);
+  }
+
   @Get(':id/download')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Download track (requires access or free)' })
   download(@Param('id') id: string, @Req() req: Request) {
-    return this.tracks.download(id, req.user?.['sub'] as string);
+    const adSessionId = req.headers['x-ad-session-id'] as string | undefined;
+    return this.tracks.download(id, req.user?.['sub'] as string, adSessionId);
   }
 }

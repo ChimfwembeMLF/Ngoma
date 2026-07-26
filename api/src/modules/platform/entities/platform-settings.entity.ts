@@ -22,6 +22,9 @@ export class PlatformSettings {
   @Column({ name: 'saved_branding_templates', type: 'jsonb', default: [] })
   savedBrandingTemplates: Record<string, unknown>[];
 
+  @Column({ name: 'ads_config', type: 'jsonb', default: { adsEnabled: true, gateSeconds: 5 } })
+  adsConfig: Record<string, unknown>;
+
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }

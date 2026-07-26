@@ -3,7 +3,14 @@ import { useState } from 'react';
 import { useTrack } from '@/hooks/useTracks';
 import { useArtistVideos } from '@/hooks/useVideos';
 import { useAddTrackToPlaylist, useMyPlaylists } from '@/hooks/usePlaylists';
+import {
+  useAdsConfig,
+  useCompleteAdSession,
+  useStartAdSession,
+  type AdSessionStart,
+} from '@/hooks/useAds';
 import { AudioPlayer } from '@/components/player/AudioPlayer';
+import { AdGateModal } from '@/components/ads/AdGateModal';
 import { formatDuration } from '@/lib/format-duration';
 import { getAccessToken } from '@/lib/auth-storage';
 import { AppShell } from '@/components/layout/AppShell';
@@ -28,6 +35,13 @@ export function TrackPage() {
   const artistVideoList = artistVideos.data?.data ?? [];
   const [downloading, setDownloading] = useState(false);
   const [downloadError, setDownloadError] = useState('');
+  const [adSession, setAdSession] = useState<AdSessionStart | null>(null);
+  const [adGateError, setAdGateError] = useState('');
+  const [startingAdGate, setStartingAdGate] = useState(false);
+  const { data: adsConfigData } = useAdsConfig();
+  const startAdSession = useStartAdSession();
+  const completeAdSession = useCompleteAdSession();
+  const adsEnabled = adsConfigData?.data?.adsEnabled !== false;
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
   const [addMessage, setAddMessage] = useState('');
   const isLoggedIn = !!getAccessToken();
@@ -67,14 +81,16 @@ export function TrackPage() {
     }
   };
 
-  const download = async () => {
+  const download = async (adSessionId?: string) => {
     const token = getAccessToken();
     if (!token) return;
     setDownloading(true);
     setDownloadError('');
     try {
+      const headers: Record<string, string> = { Authorization: `Bearer ${token}` };
+      if (adSessionId) headers['X-Ad-Session-Id'] = adSessionId;
       const res = await fetch(`${baseUrl}/api/v1/tracks/${track.id}/download`, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
       });
       if (!res.ok) {
         const contentType = res.headers.get('content-type') ?? '';
@@ -95,6 +111,38 @@ export function TrackPage() {
       setDownloadError(err instanceof Error ? err.message : 'Download failed');
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const beginFreeDownload = async () => {
+    if (!adsEnabled || track.pricingType !== 'FREE') {
+      await download();
+      return;
+    }
+    setStartingAdGate(true);
+    setAdGateError('');
+    setDownloadError('');
+    try {
+      const res = await startAdSession.mutateAsync(track.id);
+      setAdSession(res.data);
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : 'Could not start ad session');
+    } finally {
+      setStartingAdGate(false);
+    }
+  };
+
+  const completeAdGateDownload = async () => {
+    if (!adSession) return;
+    setAdGateError('');
+    try {
+      await completeAdSession.mutateAsync(adSession.sessionId);
+      setAdSession(null);
+      await download(adSession.sessionId);
+    } catch (err) {
+      setAdGateError(
+        err instanceof Error ? err.message : 'Session expired, try again',
+      );
     }
   };
 
@@ -148,7 +196,7 @@ export function TrackPage() {
                   </Link>
                 )}
                 {canDownload && (
-                  <Button variant="outline" onClick={download} disabled={downloading}>
+                  <Button variant="outline" onClick={() => download()} disabled={downloading}>
                     {downloading ? 'Downloading…' : 'Download'}
                   </Button>
                 )}
@@ -160,8 +208,16 @@ export function TrackPage() {
             )
           ) : isLoggedIn ? (
             canDownload && (
-              <Button variant="outline" onClick={download} disabled={downloading}>
-                {downloading ? 'Downloading…' : 'Download free'}
+              <Button
+                variant="outline"
+                onClick={beginFreeDownload}
+                disabled={downloading || startingAdGate}
+              >
+                {startingAdGate
+                  ? 'Loading ad…'
+                  : downloading
+                    ? 'Downloading…'
+                    : 'Download free'}
               </Button>
             )
           ) : (
@@ -180,6 +236,19 @@ export function TrackPage() {
         </div>
 
         {downloadError && <p className="text-sm text-destructive">{downloadError}</p>}
+
+        {adSession && (
+          <AdGateModal
+            session={adSession}
+            onComplete={completeAdGateDownload}
+            onCancel={() => {
+              setAdSession(null);
+              setAdGateError('');
+            }}
+            completing={completeAdSession.isPending || downloading}
+            error={adGateError}
+          />
+        )}
 
         {isLoggedIn && (
           <div className="rounded-md border border-border bg-muted p-4">

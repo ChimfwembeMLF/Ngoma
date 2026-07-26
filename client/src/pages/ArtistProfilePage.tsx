@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { GENRE_OPTIONS } from '@/components/tracks/TrackUploadForm';
+import { GENRE_OPTIONS } from '@/lib/constants';
 
 export function ArtistProfilePage() {
   const { meQuery } = useAuth();

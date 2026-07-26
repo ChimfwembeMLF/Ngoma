@@ -16,7 +16,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FormWizard } from '@/components/forms';
 import { GENRE_OPTIONS } from '@/lib/constants';
 
 

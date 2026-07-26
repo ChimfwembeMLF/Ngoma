@@ -1,4 +1,3 @@
-import { getProxiedImageUrl } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { BackgroundEditor } from '@/components/admin/BackgroundEditor';
@@ -96,7 +95,7 @@ export function AdminBrandingPage() {
                 <div className="relative border-b border-border bg-background/90 px-4 py-3 backdrop-blur">
                   {branding.logoUrl ? (
                     <img
-                      src={getProxiedImageUrl(branding.logoUrl)}
+                      src={branding.logoUrl}
                       alt=""
                       style={{ width: Math.min(branding.logoWidth, 160) }}
                       className="h-auto max-h-12 object-contain"

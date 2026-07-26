@@ -14,6 +14,7 @@ import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { CreateCuratedPlaylistDto } from './dto/create-curated-playlist.dto';
 import { UpdateCuratedPlaylistDto } from './dto/update-curated-playlist.dto';
+import { MediaService } from '../media/media.service';
 
 @Injectable()
 export class PlaylistsService {
@@ -25,6 +26,7 @@ export class PlaylistsService {
     @InjectRepository(Track)
     private readonly tracksRepo: Repository<Track>,
     private readonly config: ConfigService,
+    private readonly media: MediaService,
   ) {}
 
   async create(userId: string, dto: CreatePlaylistDto) {
@@ -176,6 +178,13 @@ export class PlaylistsService {
     }
     if (dto.isPublic !== undefined) playlist.isPublic = dto.isPublic;
 
+    const saved = await this.playlistsRepo.save(playlist);
+    return { success: true, data: playlist };
+  }
+
+  async uploadCover(userId: string, id: string, cover: Express.Multer.File) {
+    const playlist = await this.getOwnedPlaylist(userId, id);
+    playlist.coverArtUrl = await this.media.saveImage(cover);
     const saved = await this.playlistsRepo.save(playlist);
     return { success: true, data: saved };
   }

@@ -115,6 +115,7 @@ export class S3StorageService {
           Body: params.buffer,
           ContentType: params.contentType,
           CacheControl: 'max-age=3600',
+          ACL: params.folder === 'images' ? 'public-read' : 'private',
         }),
       );
 

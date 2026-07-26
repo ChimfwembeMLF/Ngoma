@@ -1,4 +1,3 @@
-import { getProxiedImageUrl } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { BackgroundEditor } from '@/components/admin/BackgroundEditor';

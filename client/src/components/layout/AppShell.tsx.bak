@@ -1,4 +1,3 @@
-import { getProxiedImageUrl } from '@/lib/utils';
 import { Link } from 'react-router-dom';
 import { getAccessToken } from '@/lib/auth-storage';
 import { hasActiveBackground } from '@/lib/branding-defaults';
@@ -75,7 +74,7 @@ export function AppShell({
           <Link to="/discover" className="shrink-0">
             {branding.logoUrl ? (
               <img
-                src={getProxiedImageUrl(branding.logoUrl)}
+                src={branding.logoUrl}
                 alt="Ngoma"
                 style={{ width: branding.logoWidth }}
                 className={cn('h-auto w-auto object-contain', layoutLogoMaxHeight[layout])}

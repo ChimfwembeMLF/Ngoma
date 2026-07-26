@@ -1,4 +1,3 @@
-import { getProxiedImageUrl } from '@/lib/utils';
 import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -65,7 +64,7 @@ export function LogoEditor({ branding }: LogoEditorProps) {
       <div className="mt-4 flex min-h-[80px] items-center justify-center rounded-md border border-border bg-muted/30 p-4">
         {branding.logoUrl ? (
           <img
-            src={getProxiedImageUrl(branding.logoUrl)}
+            src={branding.logoUrl}
             alt="Platform logo preview"
             style={{ width }}
             className="h-auto max-h-16 object-contain"

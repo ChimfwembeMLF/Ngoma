@@ -7,9 +7,12 @@ import {
   Post,
   Put,
   Req,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
@@ -83,6 +86,23 @@ export class PlaylistsController {
   @ApiOperation({ summary: 'Delete own playlist' })
   delete(@Req() req: Request, @Param('id') id: string) {
     return this.playlists.delete(req.user!['sub'] as string, id);
+  }
+
+  @Post(':id/upload')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiConsumes('multipart/form-data')
+  @ApiOperation({ summary: 'Upload playlist cover image' })
+  @UseInterceptors(FileInterceptor('coverArt'))
+  upload(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @UploadedFile() coverArt: Express.Multer.File,
+  ) {
+    if (!coverArt) {
+      throw new Error('Cover art file is required');
+    }
+    return this.playlists.uploadCover(req.user!['sub'] as string, id, coverArt);
   }
 
   @Post(':id/tracks')

@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '../lib/api-client';
+import { getAccessToken } from '../lib/auth-storage';
 
 export type PlaylistSummary = {
   id: string;
@@ -133,6 +134,36 @@ export function useUpdatePlaylist() {
         method: 'PUT',
         body: JSON.stringify(body),
       }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['playlists', 'mine'] });
+      queryClient.invalidateQueries({ queryKey: ['playlists', variables.id] });
+    },
+  });
+}
+
+export function useUploadPlaylistCover() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, coverArt }: { id: string; coverArt: File }) => {
+      const form = new FormData();
+      form.append('coverArt', coverArt);
+      
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
+      const token = getAccessToken();
+      const headers = new Headers();
+      if (token) headers.set('Authorization', `Bearer ${token}`);
+      
+      const res = await fetch(`${baseUrl}/api/v1/playlists/${id}/upload`, {
+        method: 'POST',
+        headers,
+        body: form,
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data.error || data.message || `Upload failed (${res.status})`);
+      }
+      return data;
+    },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['playlists', 'mine'] });
       queryClient.invalidateQueries({ queryKey: ['playlists', variables.id] });

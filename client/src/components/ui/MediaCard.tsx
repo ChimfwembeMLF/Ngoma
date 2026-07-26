@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, getProxiedImageUrl } from '@/lib/utils';
 
 type MediaCardProps = {
   to?: string;
@@ -32,11 +32,12 @@ type MediaCardCoverProps = {
 };
 
 export function MediaCardCover({ coverArtUrl, className }: MediaCardCoverProps) {
+  const proxiedUrl = getProxiedImageUrl(coverArtUrl);
   return (
     <div className={cn('relative aspect-square w-full overflow-hidden bg-muted', className)}>
-      {coverArtUrl ? (
+      {proxiedUrl ? (
         <img
-          src={coverArtUrl}
+          src={proxiedUrl}
           alt=""
           className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
         />

@@ -1,5 +1,5 @@
 import { formatDuration } from '@/lib/format-duration';
-import { cn } from '@/lib/utils';
+import { cn, getProxiedImageUrl } from '@/lib/utils';
 import { MediaCard, MediaCardContent } from '@/components/ui/MediaCard';
 import type { Video } from '@/hooks/useVideos';
 
@@ -19,12 +19,13 @@ function VideoCoverPlaceholder() {
 }
 
 export function VideoCard({ video, className }: VideoCardProps) {
+  const proxiedUrl = getProxiedImageUrl(video.thumbnailUrl);
   return (
     <MediaCard to={`/videos/${video.id}`} className={cn('h-full', className)}>
       <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        {video.thumbnailUrl ? (
+        {proxiedUrl ? (
           <img
-            src={video.thumbnailUrl}
+            src={proxiedUrl}
             alt=""
             className="h-full w-full object-cover transition-transform group-hover:scale-[1.02]"
           />

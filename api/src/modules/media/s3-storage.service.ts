@@ -11,6 +11,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { randomUUID } from 'crypto';
 import { extname } from 'path';
 import {
@@ -123,10 +124,32 @@ export class S3StorageService {
         publicUrl: getS3PublicUrl(storagePath, this.bucket, this.config),
         storagePath,
       };
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'unknown error';
-      this.logger.error(`S3 upload failed: ${message}`);
-      throw new BadRequestException(`Storage upload failed: ${message}`);
+    } catch (error: any) {
+      this.logger.error(`S3 upload failed: ${error.message}`);
+      throw new BadRequestException(`Storage upload failed: ${error.message}`);
+    }
+  }
+
+  async createPresignedUrl(params: {
+    folder: string;
+    extension: string;
+    contentType: string;
+  }): Promise<{ uploadUrl: string; publicUrl: string; storagePath: string }> {
+    const key = this.buildObjectPath(params.folder, params.extension);
+    const client = this.getClient();
+    const command = new PutObjectCommand({
+      Bucket: this.bucket,
+      Key: key,
+      ContentType: params.contentType,
+    });
+
+    try {
+      const uploadUrl = await getSignedUrl(client, command, { expiresIn: 3600 });
+      const publicUrl = this.getPublicUrl(key);
+      return { uploadUrl, publicUrl, storagePath: key };
+    } catch (error: any) {
+      this.logger.error(`S3 presigned URL failed: ${error.message}`);
+      throw new ServiceUnavailableException(`Storage presigned URL failed: ${error.message}`);
     }
   }
 

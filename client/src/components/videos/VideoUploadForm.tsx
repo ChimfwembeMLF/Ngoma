@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { FormWizard } from '@/components/forms';
+import { FileUploadZone } from '@/components/ui/file-upload-zone';
 
 const MAX_VIDEO_BYTES = 200 * 1024 * 1024;
 const ACCEPTED_VIDEO = 'video/mp4,video/webm,.mp4,.webm';
@@ -170,16 +171,15 @@ export function VideoUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="video-file">Video (MP4 or WebM, max 200 MB)</Label>
-            <Input
+            <FileUploadZone
               id="video-file"
-              type="file"
               accept={ACCEPTED_VIDEO}
-              onChange={(e) => void handleVideoSelect(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:text-foreground"
+              selectedFile={videoFile}
+              onFileSelect={(file) => void handleVideoSelect(file)}
+              label="Click or drag video file"
+              description="MP4, WebM up to 200MB"
+              maxSize={MAX_VIDEO_BYTES}
             />
-            {videoFile && (
-              <p className="text-sm text-muted-foreground">Selected: {videoFile.name}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -192,7 +192,7 @@ export function VideoUploadForm({ onSuccess }: { onSuccess?: () => void }) {
               <p className="text-sm text-muted-foreground">Generating thumbnail…</p>
             )}
             {thumbnailPreview && !thumbnailGenerating && (
-              <div className="overflow-hidden rounded-md border border-border bg-muted">
+              <div className="overflow-hidden rounded-md border border-border bg-muted mb-2">
                 <img
                   src={thumbnailPreview}
                   alt="Video thumbnail preview"
@@ -203,12 +203,14 @@ export function VideoUploadForm({ onSuccess }: { onSuccess?: () => void }) {
                 </p>
               </div>
             )}
-            <Input
+            <FileUploadZone
               id="video-thumbnail"
-              type="file"
               accept="image/*"
-              onChange={(e) => handleThumbnailSelect(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:text-foreground"
+              selectedFile={thumbnailSource === 'custom' ? thumbnail : null}
+              onFileSelect={handleThumbnailSelect}
+              label="Click or drag cover image"
+              description="Upload a custom cover to override the auto-generated one"
+              maxSize={10 * 1024 * 1024}
             />
           </div>
         </div>

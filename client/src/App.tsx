@@ -7,6 +7,7 @@ import { TrackPage } from './pages/TrackPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ArtistDashboardPage } from './pages/ArtistDashboardPage';
 import { ArtistProfilePage } from './pages/ArtistProfilePage';
+import { ArtistSettingsPage } from './pages/ArtistSettingsPage';
 import { TipArtistPage } from './pages/TipArtistPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
 import { PlaylistDetailPage } from './pages/PlaylistDetailPage';
@@ -18,6 +19,11 @@ import { AdminBrandingPage } from './pages/AdminBrandingPage';
 import { AdminPayoutsPage } from './pages/AdminPayoutsPage';
 import { AdminAdsPage } from './pages/AdminAdsPage';
 import { VideoPage } from './pages/VideoPage';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { TermsPage } from './pages/TermsPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { RefundPolicyPage } from './pages/RefundPolicyPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { ThemeProvider } from './providers/ThemeProvider';
@@ -39,6 +45,11 @@ export default function App() {
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/refund" element={<RefundPolicyPage />} />
           <Route path="/tracks/:id" element={<TrackPage />} />
           <Route path="/videos/:id" element={<VideoPage />} />
           <Route path="/playlists/share/:slug" element={<PlaylistDetailPage />} />
@@ -72,6 +83,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <ArtistProfilePage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/artist/settings"
+            element={
+              <ProtectedRoute>
+                <ArtistSettingsPage />
               </ProtectedRoute>
             }
           />

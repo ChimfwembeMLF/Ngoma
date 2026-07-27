@@ -145,7 +145,10 @@ export function isPawaPayDepositFailed(status?: string | null): boolean {
 
 function formatPawaPayError(error: unknown): string {
   if (isAxiosError(error)) {
-    const data = error.response?.data as { errorMessage?: string; message?: string } | undefined;
+    const data = error.response?.data as any;
+    if (data?.failureReason?.failureMessage) {
+      return data.failureReason.failureMessage;
+    }
     return data?.errorMessage || data?.message || error.message;
   }
   return error instanceof Error ? error.message : 'Unknown payment gateway error';

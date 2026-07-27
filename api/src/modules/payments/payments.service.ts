@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   Injectable,
   Logger,
   NotFoundException,
@@ -431,6 +432,19 @@ export class PaymentsService {
             err instanceof Error ? err.message : String(err)
           }`,
         );
+        require('fs').writeFileSync('/tmp/pawapay_error.log', JSON.stringify({
+          name: err?.name,
+          message: err?.message,
+          stack: err?.stack,
+          type: typeof err,
+          str: String(err)
+        }, null, 2));
+        if (err instanceof HttpException) {
+          throw err;
+        }
+        if (err && typeof err === 'object' && typeof (err as any).getStatus === 'function') {
+          throw err;
+        }
         throw new ServiceUnavailableException(
           'Payment service is temporarily unavailable. Please try again shortly.',
         );

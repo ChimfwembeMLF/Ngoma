@@ -170,10 +170,15 @@ export class AuthService {
 
     let artistId: string | undefined;
     let artistName: string | undefined;
+    let bio: string | undefined;
+    let coverImageUrl: string | undefined;
+
     if (user.role === UserRole.ARTIST) {
       const artist = await this.artistsRepo.findOne({ where: { userId: user.id } });
       artistId = artist?.id;
       artistName = artist?.artistName;
+      bio = artist?.bio;
+      coverImageUrl = artist?.coverImageUrl;
     }
 
     return {
@@ -183,10 +188,13 @@ export class AuthService {
         email: user.email,
         phone: user.phone,
         fullName: user.fullName,
+        avatarUrl: user.avatarUrl,
         role: user.role,
         country: user.country,
         artistId,
         artistName,
+        bio,
+        coverImageUrl,
       },
     };
   }

@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/select';
 import { FormWizard } from '@/components/forms';
 import { GENRE_OPTIONS } from '@/lib/constants';
+import { FileUploadZone } from '@/components/ui/file-upload-zone';
 
 
 
@@ -224,16 +225,15 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
         <div className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="track-audio">Audio file</Label>
-            <Input
+            <FileUploadZone
               id="track-audio"
-              type="file"
               accept="audio/*"
-              onChange={(e) => setAudio(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:text-foreground"
+              selectedFile={audio}
+              onFileSelect={setAudio}
+              label="Click or drag audio file to upload"
+              description="MP3, WAV, FLAC up to 500MB"
+              maxSize={500 * 1024 * 1024}
             />
-            {audio && (
-              <p className="text-sm text-muted-foreground">Selected: {audio.name}</p>
-            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="track-cover">Cover image (optional)</Label>
@@ -246,16 +246,15 @@ export function TrackUploadForm({ onSuccess }: { onSuccess?: () => void }) {
                 />
               </div>
             )}
-            <Input
+            <FileUploadZone
               id="track-cover"
-              type="file"
               accept="image/*"
-              onChange={(e) => setCoverArt(e.target.files?.[0] ?? null)}
-              className="text-sm text-muted-foreground file:mr-3 file:rounded-sm file:border file:border-border file:bg-muted file:px-3 file:py-2 file:text-sm file:text-foreground"
+              selectedFile={coverArt}
+              onFileSelect={setCoverArt}
+              label="Click or drag cover image"
+              description="JPG, PNG up to 10MB (Square recommended)"
+              maxSize={10 * 1024 * 1024}
             />
-            {coverArt && (
-              <p className="text-sm text-muted-foreground">Selected: {coverArt.name}</p>
-            )}
           </div>
         </div>
       ),

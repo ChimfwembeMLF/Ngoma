@@ -1,5 +1,5 @@
 import { getProxiedImageUrl } from '@/lib/utils';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { getAccessToken } from '@/lib/auth-storage';
 import { hasActiveBackground } from '@/lib/branding-defaults';
 import { cn } from '@/lib/utils';
@@ -110,6 +110,14 @@ export function AppShell({
                 >
                   Dashboard
                 </Link>
+                {isArtist && (
+                  <Link
+                    to="/artist/settings"
+                    className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'normal-case' })}
+                  >
+                    Settings
+                  </Link>
+                )}
               </>
             )}
             {!isLoggedIn && (
@@ -134,6 +142,7 @@ export function AppShell({
       >
         {children}
       </main>
+      <Footer />
       <AudioPlayer />
       <BottomNav />
       <ReloadPrompt />

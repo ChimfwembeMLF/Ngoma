@@ -7,6 +7,7 @@ import { useBranding } from '@/providers/BrandingProvider';
 import { buttonVariants } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { BottomNav } from '@/components/layout/BottomNav';
+import { Footer } from '@/components/layout/Footer';
 import { AudioPlayer } from '@/components/player/AudioPlayer';
 import { usePlayer } from '@/providers/PlayerProvider';
 import { useAuth } from '@/hooks/useAuth';

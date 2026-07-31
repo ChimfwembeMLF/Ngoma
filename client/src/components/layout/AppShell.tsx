@@ -54,7 +54,7 @@ export function AppShell({
   centered = false,
   className,
 }: AppShellProps) {
-  const { meQuery } = useAuth();
+  const { meQuery, logout } = useAuth();
   const user = meQuery.data?.data;
   const isLoggedIn = !!user;
   const isArtist = user?.role === 'ARTIST';
@@ -119,6 +119,12 @@ export function AppShell({
                     Settings
                   </Link>
                 )}
+                <button
+                  onClick={logout}
+                  className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'normal-case text-muted-foreground hover:text-destructive' })}
+                >
+                  Sign out
+                </button>
               </>
             )}
             {!isLoggedIn && (

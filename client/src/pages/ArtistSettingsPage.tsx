@@ -11,7 +11,7 @@ import { FileUploadZone } from '@/components/ui/file-upload-zone';
 import { AppShell } from '@/components/layout/AppShell';
 
 export function ArtistSettingsPage() {
-  const { meQuery } = useAuth();
+  const { meQuery, logout } = useAuth();
   const user = meQuery.data?.data;
 
   const updateUser = useUpdateUserAccount();
@@ -58,9 +58,14 @@ export function ArtistSettingsPage() {
   return (
     <AppShell>
       <div className="container mx-auto max-w-4xl py-12 px-4 sm:px-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
-          <p className="text-muted-foreground mt-2">Manage your account and public artist profile.</p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">Settings</h1>
+            <p className="text-muted-foreground mt-2">Manage your account and public artist profile.</p>
+          </div>
+          <Button variant="outline" size="sm" onClick={logout} className="shrink-0 text-muted-foreground hover:text-destructive">
+            Sign out
+          </Button>
         </div>
 
       <Tabs defaultValue="profile" className="space-y-6">

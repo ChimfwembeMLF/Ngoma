@@ -27,8 +27,10 @@ import { TrackEarningsTable } from '@/components/analytics/TrackEarningsTable';
 import { Card, CardContent } from '@/components/ui/card';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 export function ArtistDashboardPage() {
+  const { logout } = useAuth();
   const { data, refetch, isLoading } = useMyTracks();
   const tracks = data?.data ?? [];
   const {
@@ -138,6 +140,9 @@ export function ArtistDashboardPage() {
     <AppShell maxWidth="6xl">
       <div className="mb-8 flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Artist Dashboard</h1>
+        <Button variant="outline" size="sm" onClick={logout} className="text-muted-foreground hover:text-destructive">
+          Sign out
+        </Button>
       </div>
 
       <div className="flex border-b border-border mb-6 overflow-x-auto no-scrollbar">

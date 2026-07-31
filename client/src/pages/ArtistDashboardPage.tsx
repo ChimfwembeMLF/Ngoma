@@ -293,15 +293,30 @@ export function ArtistDashboardPage() {
                       size="sm"
                       className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="min-w-0">
-                        <div className="truncate font-medium text-foreground">{track.title}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {track.genre} · {track.isPublished ? 'Published' : 'Draft'} ·{' '}
-                          {track.pricingType === 'FREE'
-                            ? 'Free'
-                            : track.pricingType === 'PAY_WHAT_YOU_WANT'
-                              ? `PWYW from ZMW ${track.minPrice ?? 0}`
-                              : `ZMW ${track.price ?? 0}`}
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-md bg-muted shadow-sm">
+                          {track.coverArtUrl ? (
+                            <img
+                              src={getProxiedImageUrl(track.coverArtUrl)}
+                              alt={track.title}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/80">
+                              🎵
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-foreground">{track.title}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {track.genre} · {track.isPublished ? 'Published' : 'Draft'} ·{' '}
+                            {track.pricingType === 'FREE'
+                              ? 'Free'
+                              : track.pricingType === 'PAY_WHAT_YOU_WANT'
+                                ? `PWYW from ZMW ${track.minPrice ?? 0}`
+                                : `ZMW ${track.price ?? 0}`}
+                          </div>
                         </div>
                       </div>
                       <Link

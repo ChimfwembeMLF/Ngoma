@@ -6,6 +6,45 @@ import { buttonVariants } from '@/components/ui/button';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
+function getEmbedUrl(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname.replace(/^www\./, '').replace(/^m\./, '');
+
+    if (hostname === 'youtube.com' || hostname === 'youtu.be') {
+      let videoId = '';
+      if (hostname === 'youtu.be') {
+        videoId = parsedUrl.pathname.slice(1);
+      } else if (parsedUrl.pathname === '/watch') {
+        videoId = parsedUrl.searchParams.get('v') || '';
+      } else if (parsedUrl.pathname.startsWith('/embed/')) {
+        return url; // Already an embed URL
+      } else if (parsedUrl.pathname.startsWith('/shorts/')) {
+        videoId = parsedUrl.pathname.split('/')[2] || '';
+      }
+      
+      // Handle URLs like https://youtube.com/v/1234
+      if (!videoId && parsedUrl.pathname.startsWith('/v/')) {
+        videoId = parsedUrl.pathname.split('/')[2] || '';
+      }
+
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+      }
+    } else if (hostname === 'vimeo.com') {
+      const match = parsedUrl.pathname.match(/^\/(\d+)/);
+      if (match) {
+        return `https://player.vimeo.com/video/${match[1]}?autoplay=1`;
+      }
+    }
+    
+    // Default return the original url to use in iframe
+    return url;
+  } catch {
+    return url;
+  }
+}
+
 export function VideoPage() {
   const { id = '' } = useParams();
   const { data, isLoading } = useVideo(id);
@@ -43,13 +82,23 @@ export function VideoPage() {
         </Link>
 
         <div className="overflow-hidden rounded-md bg-black">
-          <video
-            controls
-            playsInline
-            poster={video.thumbnailUrl ?? undefined}
-            className="aspect-video min-h-[200px] w-full"
-            src={streamUrl}
-          />
+          {video.videoFileUrl || !video.externalUrl ? (
+            <video
+              controls
+              playsInline
+              poster={video.thumbnailUrl ?? undefined}
+              className="aspect-video min-h-[200px] w-full"
+              src={streamUrl}
+            />
+          ) : (
+            <iframe
+              src={getEmbedUrl(video.externalUrl)}
+              className="aspect-video min-h-[200px] w-full border-0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={video.title}
+            />
+          )}
         </div>
 
         <div>

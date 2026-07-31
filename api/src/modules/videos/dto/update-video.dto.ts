@@ -13,4 +13,9 @@ export class UpdateVideoDto {
   @IsOptional()
   @IsBoolean()
   isPublished?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  externalUrl?: string;
 }

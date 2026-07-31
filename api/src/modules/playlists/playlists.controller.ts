@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Patch,
   Req,
   UploadedFile,
   UseGuards,
@@ -18,6 +19,7 @@ import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { AddPlaylistTrackDto } from './dto/add-playlist-track.dto';
+import { ReorderPlaylistDto } from './dto/reorder-playlist.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 
@@ -127,5 +129,17 @@ export class PlaylistsController {
     @Param('trackId') trackId: string,
   ) {
     return this.playlists.removeTrack(req.user!['sub'] as string, id, trackId);
+  }
+
+  @Patch(':id/reorder')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Reorder tracks in a playlist' })
+  reorderTracks(
+    @Req() req: Request,
+    @Param('id') id: string,
+    @Body() dto: ReorderPlaylistDto,
+  ) {
+    return this.playlists.reorderTracks(req.user!['sub'] as string, id, dto.trackIds);
   }
 }

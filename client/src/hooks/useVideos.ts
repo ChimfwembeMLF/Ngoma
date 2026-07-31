@@ -7,6 +7,8 @@ export type Video = {
   title: string;
   description?: string | null;
   thumbnailUrl?: string | null;
+  externalUrl?: string | null;
+  videoFileUrl?: string | null;
   duration?: number | null;
   artistId?: string;
   artistName?: string;
@@ -73,6 +75,7 @@ export function useUpdateVideo() {
       title?: string;
       description?: string;
       isPublished?: boolean;
+      externalUrl?: string;
     }) =>
       apiFetch(`/api/v1/videos/${id}`, {
         method: 'PUT',

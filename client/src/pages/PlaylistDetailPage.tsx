@@ -9,12 +9,18 @@ import {
   usePlaylistBySlug,
   useRemoveTrackFromPlaylist,
   useUpdatePlaylist,
+  useReorderPlaylistTracks,
+  useAddTrackToPlaylist,
 } from '@/hooks/usePlaylists';
+import { useTrending, useSearch } from '@/hooks/useDiscovery';
+import { usePlayer } from '@/providers/PlayerProvider';
 import { AppShell } from '@/components/layout/AppShell';
 import { EditPlaylistDialog } from '@/components/playlists/EditPlaylistDialog';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { formatDuration } from '@/lib/format-duration';
+import { Play, ArrowUp, ArrowDown, Plus, Check, Search } from 'lucide-react';
 
 export function PlaylistDetailPage() {
   const { id, slug } = useParams<{ id?: string; slug?: string }>();
@@ -25,10 +31,19 @@ export function PlaylistDetailPage() {
   const updatePlaylist = useUpdatePlaylist();
   const deletePlaylist = useDeletePlaylist();
   const removeTrack = useRemoveTrackFromPlaylist();
+  const reorderTracks = useReorderPlaylistTracks();
   const ensureShareLink = useEnsureShareLink();
+  const addTrack = useAddTrackToPlaylist();
+  const { setQueue, updateQueueWithoutPlaying, queue } = usePlayer();
+  
   const [actionError, setActionError] = useState('');
   const [copyFeedback, setCopyFeedback] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const trendingQuery = useTrending();
+  const searchResultsQuery = useSearch(searchQuery);
+  const displayedTracks = searchQuery.length >= 2 ? searchResultsQuery.data?.data ?? [] : trendingQuery.data?.data ?? [];
 
   const playlist = data?.data;
   const isEditorial = playlist?.isCurated === true;
@@ -116,6 +131,48 @@ export function PlaylistDetailPage() {
     }
   };
 
+  const handleMove = async (index: number, direction: -1 | 1) => {
+    if (!playlist) return;
+    if (index + direction < 0 || index + direction >= playlist.tracks.length) return;
+    
+    setActionError('');
+    try {
+      const newTracks = [...playlist.tracks];
+      const temp = newTracks[index];
+      newTracks[index] = newTracks[index + direction];
+      newTracks[index + direction] = temp;
+      
+      const trackIds = newTracks.map(t => t.trackId);
+      await reorderTracks.mutateAsync({ playlistId: playlist.id, trackIds });
+      if (queue.length > 0 && queue.every(qt => trackIds.includes(qt.id))) {
+        const updatedQueue = newTracks.map(t => ({
+          id: t.trackId,
+          title: t.title,
+          artistName: t.artistName,
+          streamUrl: `/api/v1/tracks/${t.trackId}/stream`,
+          coverUrl: t.coverArtUrl ?? undefined,
+        }));
+        updateQueueWithoutPlaying(updatedQueue);
+      }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Reorder failed');
+    }
+  };
+
+  const playAll = (startIndex = 0) => {
+    if (!playlist || playlist.tracks.length === 0) return;
+    
+    const tracksToPlay = playlist.tracks.map(t => ({
+      id: t.trackId,
+      title: t.title,
+      artistName: t.artistName,
+      streamUrl: `/api/v1/tracks/${t.trackId}/stream`, // Note: Using proxy for streaming
+      coverUrl: t.coverArtUrl ?? undefined,
+    }));
+    
+    setQueue(tracksToPlay, startIndex);
+  };
+
   const backLink = isEditorial ? (
     <Link
       to="/discover"
@@ -186,6 +243,15 @@ export function PlaylistDetailPage() {
               {playlist.tracks.length}{' '}
               {playlist.tracks.length === 1 ? 'track' : 'tracks'}
             </p>
+            
+            {playlist.tracks.length > 0 && (
+              <div className="mt-4">
+                <Button onClick={() => playAll(0)} className="gap-2">
+                  <Play className="h-4 w-4 fill-current" />
+                  Play All
+                </Button>
+              </div>
+            )}
           </div>
           <div className="flex flex-wrap gap-2">
             {playlist.isPublic && (
@@ -251,11 +317,19 @@ export function PlaylistDetailPage() {
         </Card>
       ) : (
         <ul className="space-y-3">
-          {playlist.tracks.map((track) => (
+          {playlist.tracks.map((track, index) => (
             <li key={track.trackId}>
               <Card size="sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-4">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="shrink-0"
+                      onClick={() => playAll(index)}
+                    >
+                      <Play className="h-5 w-5 fill-current" />
+                    </Button>
                     <div className="h-12 w-12 shrink-0 overflow-hidden rounded-sm bg-muted">
                       {track.coverArtUrl ? (
                         <img src={getProxiedImageUrl(track.coverArtUrl)} alt="" className="h-full w-full object-cover" />
@@ -275,20 +349,43 @@ export function PlaylistDetailPage() {
                       <p className="text-sm text-muted-foreground">{track.artistName}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1 sm:gap-3">
                     {track.duration > 0 && (
-                      <span className="text-sm text-muted-foreground/80">
+                      <span className="text-sm text-muted-foreground/80 hidden sm:inline">
                         {formatDuration(track.duration)}
                       </span>
                     )}
                     {canManage && (
-                      <Button
-                        variant="ghost"
-                        onClick={() => handleRemoveTrack(track.trackId)}
-                        disabled={removeTrack.isPending}
-                      >
-                        Remove
-                      </Button>
+                      <>
+                        <div className="flex flex-col">
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6" 
+                            disabled={index === 0 || reorderTracks.isPending}
+                            onClick={() => handleMove(index, -1)}
+                          >
+                            <ArrowUp className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            variant="ghost" 
+                            size="icon" 
+                            className="h-6 w-6" 
+                            disabled={index === playlist.tracks.length - 1 || reorderTracks.isPending}
+                            onClick={() => handleMove(index, 1)}
+                          >
+                            <ArrowDown className="h-3 w-3" />
+                          </Button>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          onClick={() => handleRemoveTrack(track.trackId)}
+                          disabled={removeTrack.isPending}
+                          className="ml-2 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </>
                     )}
                   </div>
                 </div>
@@ -296,6 +393,74 @@ export function PlaylistDetailPage() {
             </li>
           ))}
         </ul>
+      )}
+
+      {canManage && (
+        <div className="mt-12 rounded-lg border border-border bg-card p-6 shadow-sm">
+          <h2 className="text-xl font-bold text-foreground mb-2">Add more tracks to your playlist</h2>
+          <p className="text-sm text-muted-foreground mb-4">Search for songs or pick from trending tracks below:</p>
+          <div className="relative mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search by title or artist..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
+            {displayedTracks.map((item) => {
+              const isAdded = playlist?.tracks.some((pt) => pt.trackId === item.id);
+              return (
+                <div key={item.id} className="flex items-center justify-between rounded-md border border-border bg-background p-3 transition-colors hover:bg-muted/50">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
+                      {item.coverArtUrl ? (
+                        <img src={getProxiedImageUrl(item.coverArtUrl)} alt="" className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">—</div>
+                      )}
+                    </div>
+                    <div className="truncate">
+                      <p className="truncate font-medium text-foreground text-sm">{item.title}</p>
+                      <p className="truncate text-xs text-muted-foreground">{item.artistName || 'Unknown Artist'}</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={isAdded ? 'secondary' : 'default'}
+                    size="sm"
+                    disabled={isAdded || addTrack.isPending}
+                    onClick={async () => {
+                      if (!playlist || isAdded) return;
+                      try {
+                        await addTrack.mutateAsync({ playlistId: playlist.id, trackId: item.id });
+                      } catch (e) {
+                        console.error(e);
+                      }
+                    }}
+                    className="shrink-0 gap-1"
+                  >
+                    {isAdded ? (
+                      <>
+                        <Check className="h-4 w-4 text-green-500" />
+                        <span>Added</span>
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        <span>Add</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })}
+            {displayedTracks.length === 0 && (
+              <p className="text-center py-4 text-sm text-muted-foreground">No tracks found matching "{searchQuery}".</p>
+            )}
+          </div>
+        </div>
       )}
     </AppShell>
   );

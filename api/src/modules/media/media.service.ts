@@ -1,10 +1,11 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { createReadStream, existsSync } from 'fs';
+import { createReadStream, existsSync, statSync } from 'fs';
 import { mkdir, writeFile } from 'fs/promises';
 import { join, extname } from 'path';
 import { randomUUID } from 'crypto';
 import { Readable } from 'stream';
+import { Request, Response } from 'express';
 import { parseAudioDuration } from './audio-metadata.util';
 import { S3StorageService } from './s3-storage.service';
 
@@ -119,6 +120,80 @@ export class MediaService {
       stream: createReadStream(path),
       contentType: contentType || this.s3.contentTypeFromExt(ext),
     };
+  }
+
+  async streamMedia(publicUrl: string, req: Request, res: Response, contentType?: string): Promise<void> {
+    if (this.s3.isS3Url(publicUrl)) {
+      const key = this.s3.pathFromPublicUrl(publicUrl);
+      if (!key) throw new NotFoundException('File not found');
+      const buffer = await this.s3.downloadBuffer(key);
+      const ext = this.s3.extFromUrl(publicUrl);
+      const mime = contentType || this.s3.contentTypeFromExt(ext);
+      const fileSize = buffer.length;
+
+      const range = req.headers.range;
+      if (range) {
+        const parts = range.replace(/bytes=/, '').split('-');
+        const start = parseInt(parts[0], 10);
+        const end = parts[1] && parts[1] !== '' ? parseInt(parts[1], 10) : fileSize - 1;
+        const chunksize = end - start + 1;
+        const chunk = buffer.subarray(start, end + 1);
+
+        res.writeHead(206, {
+          'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+          'Accept-Ranges': 'bytes',
+          'Content-Length': chunksize,
+          'Content-Type': mime,
+          'Cache-Control': 'public, max-age=604800, immutable',
+        });
+        res.end(chunk);
+        return;
+      }
+
+      res.writeHead(200, {
+        'Accept-Ranges': 'bytes',
+        'Content-Length': fileSize,
+        'Content-Type': mime,
+        'Cache-Control': 'public, max-age=604800, immutable',
+      });
+      res.end(buffer);
+      return;
+    }
+
+    const path = this.resolvePath(publicUrl);
+    if (!existsSync(path)) throw new NotFoundException('File not found');
+    const ext = extname(path);
+    const mime = contentType || this.s3.contentTypeFromExt(ext);
+    const stat = statSync(path);
+    const fileSize = stat.size;
+
+    const range = req.headers.range;
+    if (range) {
+      const parts = range.replace(/bytes=/, '').split('-');
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] && parts[1] !== '' ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = end - start + 1;
+      const stream = createReadStream(path, { start, end });
+
+      res.writeHead(206, {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': mime,
+        'Cache-Control': 'public, max-age=604800, immutable',
+      });
+      stream.pipe(res);
+      return;
+    }
+
+    const stream = createReadStream(path);
+    res.writeHead(200, {
+      'Accept-Ranges': 'bytes',
+      'Content-Length': fileSize,
+      'Content-Type': mime,
+      'Cache-Control': 'public, max-age=604800, immutable',
+    });
+    stream.pipe(res);
   }
 
   private async saveFile(folder: string, file: Express.Multer.File, ext: string): Promise<string> {

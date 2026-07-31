@@ -9,4 +9,9 @@ export class CreateVideoDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  externalUrl?: string;
 }

@@ -1,6 +1,7 @@
 import { getProxiedImageUrl } from '@/lib/utils';
 import { Link, useParams } from 'react-router-dom';
 import { useState } from 'react';
+import { Check } from 'lucide-react';
 import { useTrack } from '@/hooks/useTracks';
 import { useArtistVideos } from '@/hooks/useVideos';
 import { useAddTrackToPlaylist, useMyPlaylists } from '@/hooks/usePlaylists';
@@ -46,6 +47,7 @@ export function TrackPage() {
   const adsEnabled = adsConfigData?.data?.adsEnabled !== false;
   const [selectedPlaylistId, setSelectedPlaylistId] = useState('');
   const [addMessage, setAddMessage] = useState('');
+  const [addedPlaylists, setAddedPlaylists] = useState<string[]>([]);
   const isLoggedIn = !!getAccessToken();
   const { data: playlistsData } = useMyPlaylists(isLoggedIn);
   const addToPlaylist = useAddTrackToPlaylist();
@@ -72,11 +74,12 @@ export function TrackPage() {
     track.pricingType === 'SET_PRICE' || track.pricingType === 'PAY_WHAT_YOU_WANT';
   const canDownload = track.canDownload === true;
 
-  const addTrackToPlaylist = async () => {
-    if (!selectedPlaylistId) return;
+  const addTrackToPlaylist = async (playlistId: string) => {
+    if (!playlistId) return;
     setAddMessage('');
     try {
-      await addToPlaylist.mutateAsync({ playlistId: selectedPlaylistId, trackId: track.id });
+      await addToPlaylist.mutateAsync({ playlistId, trackId: track.id });
+      setAddedPlaylists((prev) => [...prev, playlistId]);
       setAddMessage('Added to playlist');
     } catch (err) {
       setAddMessage(err instanceof Error ? err.message : 'Failed to add track');
@@ -284,29 +287,46 @@ export function TrackPage() {
                 </Link>
               </p>
             ) : (
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="playlist-select">Playlist</Label>
-                  <Select value={selectedPlaylistId} onValueChange={setSelectedPlaylistId}>
-                    <SelectTrigger id="playlist-select" className="w-full">
-                      <SelectValue placeholder="Select playlist…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {myPlaylists.map((playlist) => (
-                        <SelectItem key={playlist.id} value={playlist.id}>
-                          {playlist.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              <div className="flex -mx-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:px-0 scrollbar-hide">
+                <div className="flex gap-3">
+                  {myPlaylists.map((playlist) => {
+                    const justAdded = addedPlaylists.includes(playlist.id);
+                    return (
+                      <button
+                        key={playlist.id}
+                        onClick={() => !justAdded && addTrackToPlaylist(playlist.id)}
+                        disabled={addToPlaylist.isPending || justAdded}
+                        className={`group flex w-32 shrink-0 flex-col overflow-hidden rounded-md border text-left transition-all focus:outline-none disabled:opacity-90 ${
+                          justAdded ? 'border-green-500/50 bg-green-500/5' : 'border-border bg-card hover:border-primary/50 focus:border-primary/50'
+                        }`}
+                      >
+                        <div className="relative aspect-square w-full overflow-hidden bg-muted">
+                          {playlist.coverArtUrl ? (
+                            <img src={getProxiedImageUrl(playlist.coverArtUrl)} alt="" className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+                          ) : (
+                            <div className="flex h-full w-full items-center justify-center text-muted-foreground/80">
+                              <span aria-hidden className="text-2xl">♪</span>
+                            </div>
+                          )}
+                          {justAdded && (
+                            <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center text-white font-semibold text-xs gap-1 backdrop-blur-[1px]">
+                              <Check className="h-6 w-6 text-green-400" />
+                              <span>Added</span>
+                            </div>
+                          )}
+                        </div>
+                        <div className="p-2">
+                          <p className="line-clamp-1 text-sm font-semibold text-foreground group-hover:text-primary">
+                            {playlist.name}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {playlist.trackCount} {playlist.trackCount === 1 ? 'track' : 'tracks'}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-                <Button
-                  variant="outline"
-                  onClick={addTrackToPlaylist}
-                  disabled={!selectedPlaylistId || addToPlaylist.isPending}
-                >
-                  {addToPlaylist.isPending ? 'Adding…' : 'Add to playlist'}
-                </Button>
               </div>
             )}
             {addMessage && (
@@ -324,9 +344,9 @@ export function TrackPage() {
             <h2 className="mb-4 text-base font-semibold text-foreground">
               Videos from {track.artistName}
             </h2>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-4">
               {artistVideoList.map((video) => (
-                <VideoCard key={video.id} video={video} />
+                <VideoCard key={video.id} video={video} layout="horizontal" />
               ))}
             </div>
           </section>

@@ -20,8 +20,7 @@ export class ArtistsController {
   ) {}
 
   @Put('profile')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.ARTIST)
+  @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update own artist profile' })
   async updateProfile(@Req() req: Request, @Body() dto: UpdateArtistProfileDto) {

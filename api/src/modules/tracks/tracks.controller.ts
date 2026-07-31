@@ -8,13 +8,14 @@ import {
   Put,
   Query,
   Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { TracksService } from './tracks.service';
 import { AdsService } from '../ads/ads.service';
 import { CreateTrackDto } from './dto/create-track.dto';
@@ -153,8 +154,8 @@ export class TracksController {
 
   @Get(':id/stream')
   @ApiOperation({ summary: 'Stream track audio' })
-  stream(@Param('id') id: string, @Req() req: Request) {
-    return this.tracks.stream(id, req.user?.['sub'] as string | undefined);
+  stream(@Param('id') id: string, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.tracks.stream(id, req, res, req.user?.['sub'] as string | undefined);
   }
 
   @Post(':id/ad-session')

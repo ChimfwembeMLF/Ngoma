@@ -7,13 +7,14 @@ import {
   Post,
   Put,
   Req,
+  Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { ApiBearerAuth, ApiConsumes, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { Request } from 'express';
+import { Request, Response } from 'express';
 import { VideosService } from './videos.service';
 import { CreateVideoDto } from './dto/create-video.dto';
 import { UpdateVideoDto } from './dto/update-video.dto';
@@ -39,8 +40,8 @@ export class VideosController {
 
   @Get(':id/stream')
   @ApiOperation({ summary: 'Stream published video' })
-  stream(@Param('id') id: string) {
-    return this.videos.stream(id);
+  stream(@Param('id') id: string, @Req() req: Request, @Res({ passthrough: true }) res: Response) {
+    return this.videos.stream(id, req, res);
   }
 
   @Get(':id')

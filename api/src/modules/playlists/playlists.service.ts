@@ -250,6 +250,47 @@ export class PlaylistsService {
     return this.removeTrackInternal(playlistId, trackId);
   }
 
+  async reorderTracks(userId: string, playlistId: string, trackIds: string[]) {
+    await this.getOwnedPlaylist(userId, playlistId);
+
+    // Verify all tracks exist in this playlist
+    const existingTracks = await this.playlistTracksRepo.find({
+      where: { playlistId },
+    });
+
+    const existingTrackIds = new Set(existingTracks.map(t => t.trackId));
+    
+    // Check if the provided trackIds are valid for this playlist
+    const invalidTracks = trackIds.filter(id => !existingTrackIds.has(id));
+    if (invalidTracks.length > 0) {
+      throw new BadRequestException(`Some tracks are not in this playlist: ${invalidTracks.join(', ')}`);
+    }
+
+    // Update positions
+    // This could be optimized with a query builder for bulk update, but since playlists
+    // usually have a manageable number of tracks, this sequential update is reliable
+    for (let i = 0; i < trackIds.length; i++) {
+      const trackId = trackIds[i];
+      await this.playlistTracksRepo.update(
+        { playlistId, trackId },
+        { position: i }
+      );
+    }
+
+    // Assign remaining unmentioned tracks to the end to maintain a defined order
+    const mentionedTrackIds = new Set(trackIds);
+    const unmentionedTracks = existingTracks.filter(t => !mentionedTrackIds.has(t.trackId));
+    
+    for (let i = 0; i < unmentionedTracks.length; i++) {
+      await this.playlistTracksRepo.update(
+        { playlistId, trackId: unmentionedTracks[i].trackId },
+        { position: trackIds.length + i }
+      );
+    }
+
+    return { success: true, data: { reordered: true } };
+  }
+
   private async addTrackInternal(playlistId: string, trackId: string) {
     const track = await this.tracksRepo.findOne({ where: { id: trackId } });
     if (!track || !track.isPublished || !track.isActive) {

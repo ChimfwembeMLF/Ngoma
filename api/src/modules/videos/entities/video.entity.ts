@@ -26,6 +26,9 @@ export class Video {
   @Column({ name: 'video_file_url', nullable: true })
   videoFileUrl?: string;
 
+  @Column({ name: 'external_url', length: 2048, nullable: true })
+  externalUrl?: string;
+
   @Column({ name: 'thumbnail_url', nullable: true })
   thumbnailUrl?: string;
 

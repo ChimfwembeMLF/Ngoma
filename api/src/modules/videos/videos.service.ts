@@ -13,6 +13,7 @@ import { UpdateVideoDto } from './dto/update-video.dto';
 import { PresignedUrlDto, FileType } from '../tracks/dto/presigned-url.dto';
 import { MediaService } from '../media/media.service';
 import { Artist } from '../artists/entities/artist.entity';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class VideosService {
@@ -29,6 +30,7 @@ export class VideosService {
       artistId,
       title: dto.title,
       description: dto.description,
+      externalUrl: dto.externalUrl,
       isDraft: true,
       isPublished: false,
     });
@@ -78,9 +80,10 @@ export class VideosService {
     const video = await this.getOwnedVideo(artistId, id);
     if (dto.title != null) video.title = dto.title;
     if (dto.description != null) video.description = dto.description;
+    if (dto.externalUrl !== undefined) video.externalUrl = dto.externalUrl;
     if (dto.isPublished === true) {
-      if (!video.videoFileUrl) {
-        throw new ForbiddenException('Video file required before publishing');
+      if (!video.videoFileUrl && !video.externalUrl) {
+        throw new ForbiddenException('Video file or external link required before publishing');
       }
       video.isDraft = false;
       video.isPublished = true;
@@ -154,16 +157,19 @@ export class VideosService {
     return { success: true, data: saved };
   }
 
-  async stream(id: string) {
+  async stream(id: string, req: Request, res: Response) {
     const video = await this.videosRepo.findOne({ where: { id, isActive: true } });
     if (!video || !video.isPublished) throw new NotFoundException('Video not found');
     if (!video.videoFileUrl) throw new NotFoundException('Video not available');
 
-    await this.videosRepo.increment({ id }, 'views', 1);
+    const isInitialRequest = !req.headers.range || req.headers.range === 'bytes=0-';
+    if (isInitialRequest) {
+      await this.videosRepo.increment({ id }, 'views', 1);
+    }
 
     const ext = extname(video.videoFileUrl).toLowerCase();
     const contentType = ext === '.webm' ? 'video/webm' : 'video/mp4';
-    return this.fileStream(video.videoFileUrl, contentType);
+    return this.media.streamMedia(video.videoFileUrl, req, res, contentType);
   }
 
   private async getOwnedVideo(artistId: string, id: string) {
@@ -183,6 +189,8 @@ export class VideosService {
       title: video.title,
       description: video.description ?? null,
       thumbnailUrl: video.thumbnailUrl ?? null,
+      externalUrl: video.externalUrl ?? null,
+      videoFileUrl: video.videoFileUrl ?? null,
       duration: video.duration,
       artistId: video.artistId,
       artistName: video.artist?.artistName,

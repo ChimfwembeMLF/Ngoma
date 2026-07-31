@@ -14,6 +14,7 @@ import { PresignedUrlDto, FileType } from './dto/presigned-url.dto';
 import { MediaService } from '../media/media.service';
 import { Artist } from '../artists/entities/artist.entity';
 import { AdsService } from '../ads/ads.service';
+import { Request, Response } from 'express';
 
 @Injectable()
 export class TracksService {
@@ -202,15 +203,18 @@ export class TracksService {
     return { success: true, data: saved };
   }
 
-  async stream(id: string, _userId?: string) {
+  async stream(id: string, req: Request, res: Response, _userId?: string) {
     const track = await this.tracksRepo.findOne({ where: { id, isActive: true } });
     if (!track || !track.isPublished) throw new NotFoundException('Track not found');
     if (!track.audioFileUrl) throw new NotFoundException('Audio not available');
 
-    await this.tracksRepo.increment({ id }, 'plays', 1);
-    await this.artistsRepo.increment({ id: track.artistId }, 'totalPlays', 1);
+    const isInitialRequest = !req.headers.range || req.headers.range === 'bytes=0-';
+    if (isInitialRequest) {
+      await this.tracksRepo.increment({ id }, 'plays', 1);
+      await this.artistsRepo.increment({ id: track.artistId }, 'totalPlays', 1);
+    }
 
-    return this.fileStream(track.audioFileUrl, 'audio/mpeg');
+    return this.media.streamMedia(track.audioFileUrl, req, res, 'audio/mpeg');
   }
 
   async download(id: string, userId: string, adSessionId?: string) {

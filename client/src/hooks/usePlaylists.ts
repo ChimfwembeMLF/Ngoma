@@ -210,3 +210,17 @@ export function useRemoveTrackFromPlaylist() {
     },
   });
 }
+
+export function useReorderPlaylistTracks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ playlistId, trackIds }: { playlistId: string; trackIds: string[] }) =>
+      apiFetch(`/api/v1/playlists/${playlistId}/reorder`, {
+        method: 'PATCH',
+        body: JSON.stringify({ trackIds }),
+      }),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['playlists', variables.playlistId] });
+    },
+  });
+}

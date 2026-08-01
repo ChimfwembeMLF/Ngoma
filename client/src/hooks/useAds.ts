@@ -4,6 +4,7 @@ import { apiFetch, apiUpload } from '@/lib/api-client';
 export type AdsConfig = {
   adsEnabled: boolean;
   gateSeconds: number;
+  googleAdsEnabled: boolean;
 };
 
 export type AdCreative = {

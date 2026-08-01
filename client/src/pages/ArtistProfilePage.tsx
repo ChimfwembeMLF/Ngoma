@@ -15,10 +15,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { GENRE_OPTIONS } from '@/lib/constants';
+import { GoogleAdUnit } from '@/components/ads/GoogleAdUnit';
+import { useAdsConfig } from '@/hooks/useAds';
 
 export function ArtistProfilePage() {
   const { meQuery } = useAuth();
   const update = useUpdateArtistProfile();
+  const { data: adsConfigData } = useAdsConfig();
   const [artistName, setArtistName] = useState(meQuery.data?.data.artistName ?? '');
   const [bio, setBio] = useState('');
   const [genre, setGenre] = useState('Afrobeats');
@@ -36,6 +39,17 @@ export function ArtistProfilePage() {
   return (
     <AppShell maxWidth="2xl">
       <h1 className="mb-6 text-[22px] font-medium text-foreground">Artist profile</h1>
+
+      {adsConfigData?.data?.googleAdsEnabled !== false &&
+        import.meta.env.VITE_ADSENSE_SLOT_ARTIST && (
+          <div className="mb-6 max-w-full overflow-hidden">
+            <GoogleAdUnit
+              slotId={import.meta.env.VITE_ADSENSE_SLOT_ARTIST}
+              format="leaderboard"
+              className="my-4"
+            />
+          </div>
+        )}
 
       <Card className="space-y-4 p-6">
         {message && <p className="text-sm text-muted-foreground">{message}</p>}

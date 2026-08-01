@@ -3,7 +3,16 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['dist/**', 'node_modules/**', 'postcss.config.cjs', 'tailwind.config.cjs'] },
+  {
+    ignores: [
+      'dist/**',
+      'node_modules/**',
+      'coverage/**',
+      '*.min.js',
+      'postcss.config.cjs',
+      'tailwind.config.cjs',
+    ],
+  },
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {

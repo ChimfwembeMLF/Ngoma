@@ -13,6 +13,7 @@ import {
 } from '@/hooks/useAds';
 import { usePlayer } from '@/providers/PlayerProvider';
 import { AdGateModal } from '@/components/ads/AdGateModal';
+import { GoogleAdUnit } from '@/components/ads/GoogleAdUnit';
 import { formatDuration } from '@/lib/format-duration';
 import { getAccessToken } from '@/lib/auth-storage';
 import { AppShell } from '@/components/layout/AppShell';
@@ -260,6 +261,17 @@ export function TrackPage() {
             </Link>
           )}
         </div>
+
+        {adsConfigData?.data?.googleAdsEnabled !== false &&
+          import.meta.env.VITE_ADSENSE_SLOT_TRACK && (
+            <div className="max-w-full overflow-hidden">
+              <GoogleAdUnit
+                slotId={import.meta.env.VITE_ADSENSE_SLOT_TRACK}
+                format="rectangle"
+                className="mt-6"
+              />
+            </div>
+          )}
 
         {downloadError && <p className="text-sm text-destructive">{downloadError}</p>}
 

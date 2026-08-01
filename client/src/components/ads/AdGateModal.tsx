@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
-import type { AdSessionStart } from '@/hooks/useAds';
+import { useAdsConfig, type AdSessionStart } from '@/hooks/useAds';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { GoogleAdUnit } from './GoogleAdUnit';
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL || '';
 
@@ -21,6 +22,9 @@ export function AdGateModal({
   error,
 }: AdGateModalProps) {
   const [secondsLeft, setSecondsLeft] = useState(session.gateSeconds);
+  const { data: adsConfigData } = useAdsConfig();
+  const googleAdsEnabled = adsConfigData?.data?.googleAdsEnabled !== false;
+  const slotGate = import.meta.env.VITE_ADSENSE_SLOT_GATE;
 
   useEffect(() => {
     setSecondsLeft(session.gateSeconds);
@@ -49,13 +53,19 @@ export function AdGateModal({
     >
       <Card className="w-full max-w-md space-y-4 p-6">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Sponsored</p>
-        <div className="overflow-hidden rounded-md bg-muted">
-          <img
-            src={imageSrc}
-            alt={session.creative.title}
-            className="aspect-[16/9] w-full object-cover"
-          />
-        </div>
+        {googleAdsEnabled && slotGate ? (
+          <div className="max-w-full overflow-hidden rounded-md bg-muted">
+            <GoogleAdUnit slotId={slotGate} format="rectangle" />
+          </div>
+        ) : (
+          <div className="overflow-hidden rounded-md bg-muted">
+            <img
+              src={imageSrc}
+              alt={session.creative.title}
+              className="aspect-[16/9] w-full object-cover"
+            />
+          </div>
+        )}
         <div>
           <h2 id="ad-gate-title" className="text-base font-medium text-foreground">
             {session.creative.title}

@@ -10,4 +10,8 @@ export class UpdateAdsConfigDto {
   @Min(1)
   @Max(60)
   gateSeconds?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  googleAdsEnabled?: boolean;
 }

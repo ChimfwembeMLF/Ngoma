@@ -10,6 +10,8 @@ import { SearchPill } from '@/components/ui/SearchPill';
 import { TrackCard } from '@/components/ui/TrackCard';
 import { VideoCard } from '@/components/videos/VideoCard';
 import { buttonVariants } from '@/components/ui/button';
+import { GoogleAdUnit } from '@/components/ads/GoogleAdUnit';
+import { useAdsConfig } from '@/hooks/useAds';
 
 export function DiscoverPage() {
   const [search, setSearch] = useState('');
@@ -19,7 +21,9 @@ export function DiscoverPage() {
   const searchResults = useSearch(search);
   const curated = useCuratedPlaylists();
   const recentVideos = useRecentVideos();
+  const { data: adsConfigData } = useAdsConfig();
   const videos = recentVideos.data?.data ?? [];
+  const googleAdsEnabled = adsConfigData?.data?.googleAdsEnabled !== false;
 
   const sections = [
     { title: 'Trending', tracks: trending.data?.data ?? [], loading: trending.isLoading },
@@ -59,6 +63,16 @@ export function DiscoverPage() {
           )}
         </div>
       </header>
+
+      {googleAdsEnabled && import.meta.env.VITE_ADSENSE_SLOT_DISCOVER && (
+        <div className="mb-8 max-w-full overflow-hidden">
+          <GoogleAdUnit
+            slotId={import.meta.env.VITE_ADSENSE_SLOT_DISCOVER}
+            format="leaderboard"
+            className="my-4"
+          />
+        </div>
+      )}
 
       {!curated.isLoading && curatedPlaylists.length > 0 && (
         <section className="mb-12">

@@ -62,6 +62,7 @@ export class AdsService {
     row.adsConfig = {
       adsEnabled: dto.adsEnabled ?? current.adsEnabled,
       gateSeconds: dto.gateSeconds ?? current.gateSeconds,
+      googleAdsEnabled: dto.googleAdsEnabled ?? current.googleAdsEnabled,
     };
     await this.settingsRepo.save(row);
     return { success: true, data: mergeAdsConfig(row.adsConfig as Partial<AdsConfig>) };

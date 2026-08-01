@@ -31,7 +31,7 @@ export function AdminAdsPage() {
   const [title, setTitle] = useState('');
   const [clickUrl, setClickUrl] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [gateSeconds, setGateSeconds] = useState('5');
+  const [gateSeconds, setGateSeconds] = useState('30');
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
@@ -166,6 +166,44 @@ export function AdminAdsPage() {
               </Button>
             </div>
           )}
+        </Card>
+
+        <Card className="p-6">
+          <h2 className="mb-4 text-lg font-semibold text-foreground">Google AdSense</h2>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              {import.meta.env.VITE_ADSENSE_PUBLISHER_ID ? (
+                <span className="text-emerald-600">✅ Publisher configured</span>
+              ) : (
+                <span className="text-amber-600">⚠️ Not configured</span>
+              )}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Google Ads are currently{' '}
+              <strong className="text-foreground">
+                {config?.googleAdsEnabled === false ? 'disabled' : 'enabled'}
+              </strong>
+              .
+            </p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (config) {
+                  void updateConfig.mutateAsync({
+                    googleAdsEnabled: !config.googleAdsEnabled,
+                  });
+                }
+              }}
+              disabled={!config || updateConfig.isPending}
+            >
+              {config?.googleAdsEnabled === false ? 'Enable Google Ads' : 'Disable Google Ads'}
+            </Button>
+            {!import.meta.env.VITE_ADSENSE_PUBLISHER_ID && (
+              <p className="text-sm text-muted-foreground">
+                Set VITE_ADSENSE_PUBLISHER_ID in client/.env and restart the dev server
+              </p>
+            )}
+          </div>
         </Card>
 
         <Card className="p-6">

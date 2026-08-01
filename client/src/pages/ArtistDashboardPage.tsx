@@ -322,6 +322,14 @@ export function ArtistDashboardPage() {
                                 ? `PWYW from ZMW ${track.minPrice ?? 0}`
                                 : `ZMW ${track.price ?? 0}`}
                           </div>
+                          {track.pricingType === 'FREE' && (
+                            <span
+                              className="mt-1 inline-block text-xs text-muted-foreground"
+                              title="This track is free for fans. Ad revenue helps sustain the platform."
+                            >
+                              Ad-supported
+                            </span>
+                          )}
                         </div>
                       </div>
                       <Link

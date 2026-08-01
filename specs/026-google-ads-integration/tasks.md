@@ -20,9 +20,9 @@
 
 **Purpose**: Configure environment variables and inject the AdSense script — prerequisites for ALL ad unit work.
 
-- [X] T001 Add `VITE_ADSENSE_PUBLISHER_ID`, `VITE_ADSENSE_SLOT_GATE`, `VITE_ADSENSE_SLOT_DISCOVER`, `VITE_ADSENSE_SLOT_TRACK`, `VITE_ADSENSE_SLOT_ARTIST` to `client/.env` (use placeholder values for local dev)
-- [X] T002 [P] Document the five new `VITE_ADSENSE_*` variables with comments in `client/.env.example`
-- [X] T003 [P] Inject the AdSense async `<script>` tag using `%VITE_ADSENSE_PUBLISHER_ID%` Vite interpolation in the `<head>` of `client/index.html` (placed after the existing dark-mode script block)
+- [x] T001 Add `VITE_ADSENSE_PUBLISHER_ID`, `VITE_ADSENSE_SLOT_GATE`, `VITE_ADSENSE_SLOT_DISCOVER`, `VITE_ADSENSE_SLOT_TRACK`, `VITE_ADSENSE_SLOT_ARTIST` to `client/.env` (use placeholder values for local dev)
+- [x] T002 [P] Document the five new `VITE_ADSENSE_*` variables with comments in `client/.env.example`
+- [x] T003 [P] Inject the AdSense async `<script>` tag using `%VITE_ADSENSE_PUBLISHER_ID%` Vite interpolation in the `<head>` of `client/index.html` (placed after the existing dark-mode script block)
 
 **Checkpoint**: AdSense script loads in browser when `VITE_ADSENSE_PUBLISHER_ID` is set. Verify via DevTools → Network filter `adsbygoogle`.
 
@@ -32,11 +32,11 @@
 
 **Purpose**: Backend config extension and the core `GoogleAdUnit` React component — required before any ad placement or admin UI work can begin.
 
-- [X] T004 Extend `AdsConfig` type in `api/src/common/ads-config.util.ts`: add `googleAdsEnabled: boolean` field, raise `gateSeconds` default from `5` to `30`, update `mergeAdsConfig()` to include the new field
-- [X] T005 [P] Add `@IsOptional() @IsBoolean() googleAdsEnabled?: boolean` field to `api/src/modules/ads/dto/update-ads-config.dto.ts`
-- [X] T006 Update `ads.service.ts` at `api/src/modules/ads/ads.service.ts`: persist `googleAdsEnabled` in `updateConfig()` and return it from `getPublicConfig()` / `getConfig()`
-- [X] T007 [P] Extend the `AdsConfig` TypeScript type in `client/src/hooks/useAds.ts` to include `googleAdsEnabled: boolean`
-- [X] T008 Create `client/src/components/ads/GoogleAdUnit.tsx` — a reusable `<ins class="adsbygoogle">` wrapper that: reads `VITE_ADSENSE_PUBLISHER_ID` from `import.meta.env` and returns `null` if absent; accepts props `slotId: string`, `format: 'auto' | 'rectangle' | 'leaderboard'`, `className?: string`; calls `(window.adsbygoogle = window.adsbygoogle || []).push({})` in `useEffect`; wraps the push in `try/catch` to silently swallow errors when ad-blockers are active; sets correct `data-ad-client` and `data-ad-slot` attributes on the `<ins>` element
+- [x] T004 Extend `AdsConfig` type in `api/src/common/ads-config.util.ts`: add `googleAdsEnabled: boolean` field, raise `gateSeconds` default from `5` to `30`, update `mergeAdsConfig()` to include the new field
+- [x] T005 [P] Add `@IsOptional() @IsBoolean() googleAdsEnabled?: boolean` field to `api/src/modules/ads/dto/update-ads-config.dto.ts`
+- [x] T006 Update `ads.service.ts` at `api/src/modules/ads/ads.service.ts`: persist `googleAdsEnabled` in `updateConfig()` and return it from `getPublicConfig()` / `getConfig()`
+- [x] T007 [P] Extend the `AdsConfig` TypeScript type in `client/src/hooks/useAds.ts` to include `googleAdsEnabled: boolean`
+- [x] T008 Create `client/src/components/ads/GoogleAdUnit.tsx` — a reusable `<ins class="adsbygoogle">` wrapper that: reads `VITE_ADSENSE_PUBLISHER_ID` from `import.meta.env` and returns `null` if absent; accepts props `slotId: string`, `format: 'auto' | 'rectangle' | 'leaderboard'`, `className?: string`; calls `(window.adsbygoogle = window.adsbygoogle || []).push({})` in `useEffect`; wraps the push in `try/catch` to silently swallow errors when ad-blockers are active; sets correct `data-ad-client` and `data-ad-slot` attributes on the `<ins>` element
 
 **Checkpoint**: `npm --prefix api run build` passes. `GoogleAdUnit` renders an `<ins>` tag in the DOM when publisher ID is set, and renders nothing (`null`) when absent.
 
@@ -50,8 +50,8 @@
 
 ### Implementation for User Story 1
 
-- [X] T009 [US1] Modify `client/src/components/ads/AdGateModal.tsx`: import `GoogleAdUnit` and `useAdsConfig`; replace the `<img>` custom creative block with a conditional render — when `googleAdsEnabled` is `true` and `VITE_ADSENSE_SLOT_GATE` is set, render `<GoogleAdUnit slotId={slotGate} format="rectangle" />`; keep the existing `<img>` creative as the `else` fallback branch
-- [X] T010 [US1] Pass `googleAdsEnabled` (from `useAdsConfig()`) and `slotGate` (`import.meta.env.VITE_ADSENSE_SLOT_GATE`) into `AdGateModal` via props or read them directly inside the component — choose whichever keeps the component interface clean; update the `AdGateModalProps` type in `client/src/components/ads/AdGateModal.tsx` accordingly
+- [x] T009 [US1] Modify `client/src/components/ads/AdGateModal.tsx`: import `GoogleAdUnit` and `useAdsConfig`; replace the `<img>` custom creative block with a conditional render — when `googleAdsEnabled` is `true` and `VITE_ADSENSE_SLOT_GATE` is set, render `<GoogleAdUnit slotId={slotGate} format="rectangle" />`; keep the existing `<img>` creative as the `else` fallback branch
+- [x] T010 [US1] Pass `googleAdsEnabled` (from `useAdsConfig()`) and `slotGate` (`import.meta.env.VITE_ADSENSE_SLOT_GATE`) into `AdGateModal` via props or read them directly inside the component — choose whichever keeps the component interface clean; update the `AdGateModalProps` type in `client/src/components/ads/AdGateModal.tsx` accordingly
 
 **Checkpoint (US1)**: With `VITE_ADSENSE_PUBLISHER_ID` and `VITE_ADSENSE_SLOT_GATE` set → open ad gate on a free track → `<ins>` element visible in modal → countdown completes → download works. With an ad-blocker enabled → gate still opens → countdown completes → download works → zero console errors.
 
@@ -65,9 +65,9 @@
 
 ### Implementation for User Story 2
 
-- [X] T011 [P] [US2] Modify `client/src/pages/DiscoverPage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_DISCOVER} format="leaderboard" className="my-4" />` between the hero/header section and the music grid; wrap in a conditional so it only renders when `googleAdsEnabled` is `true` (read from `useAdsConfig()`)
-- [X] T012 [P] [US2] Modify `client/src/pages/TrackPage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_TRACK} format="rectangle" className="mt-6" />` below the download/stream action button area; guard with `googleAdsEnabled` from `useAdsConfig()`
-- [X] T013 [P] [US2] Modify `client/src/pages/ArtistProfilePage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_ARTIST} format="leaderboard" className="my-4" />` between the artist header section and the track list; guard with `googleAdsEnabled` from `useAdsConfig()`
+- [x] T011 [P] [US2] Modify `client/src/pages/DiscoverPage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_DISCOVER} format="leaderboard" className="my-4" />` between the hero/header section and the music grid; wrap in a conditional so it only renders when `googleAdsEnabled` is `true` (read from `useAdsConfig()`)
+- [x] T012 [P] [US2] Modify `client/src/pages/TrackPage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_TRACK} format="rectangle" className="mt-6" />` below the download/stream action button area; guard with `googleAdsEnabled` from `useAdsConfig()`
+- [x] T013 [P] [US2] Modify `client/src/pages/ArtistProfilePage.tsx`: import `GoogleAdUnit` and render `<GoogleAdUnit slotId={import.meta.env.VITE_ADSENSE_SLOT_ARTIST} format="leaderboard" className="my-4" />` between the artist header section and the track list; guard with `googleAdsEnabled` from `useAdsConfig()`
 
 **Checkpoint (US2)**: All three pages show the `<ins>` elements in the correct positions at desktop viewport. At 375px width, no horizontal scroll. When `googleAdsEnabled` is toggled `false` via the admin panel, reloading any page shows no `<ins>` elements.
 
@@ -81,7 +81,7 @@
 
 ### Implementation for User Story 3
 
-- [X] T014 [US3] Modify `client/src/pages/AdminAdsPage.tsx`: add a new "Google AdSense" `<Card>` section below the existing ad settings card; the card must: read `VITE_ADSENSE_PUBLISHER_ID` from `import.meta.env` and display a status badge ("✅ Publisher configured" or "⚠️ Not configured"); display the current `googleAdsEnabled` value from `useAdminAdsConfig()` data; render a toggle button that calls `updateConfig.mutateAsync({ googleAdsEnabled: !current })` using the existing `useUpdateAdsConfig` hook; when publisher ID is absent, display a short setup guide: "Set VITE_ADSENSE_PUBLISHER_ID in client/.env and restart the dev server"
+- [x] T014 [US3] Modify `client/src/pages/AdminAdsPage.tsx`: add a new "Google AdSense" `<Card>` section below the existing ad settings card; the card must: read `VITE_ADSENSE_PUBLISHER_ID` from `import.meta.env` and display a status badge ("✅ Publisher configured" or "⚠️ Not configured"); display the current `googleAdsEnabled` value from `useAdminAdsConfig()` data; render a toggle button that calls `updateConfig.mutateAsync({ googleAdsEnabled: !current })` using the existing `useUpdateAdsConfig` hook; when publisher ID is absent, display a short setup guide: "Set VITE_ADSENSE_PUBLISHER_ID in client/.env and restart the dev server"
 
 **Checkpoint (US3)**: Admin toggle changes `googleAdsEnabled` via `PUT /api/v1/admin/ads/config`. The change is reflected immediately in the admin UI and takes effect on the next fan-facing page navigation.
 
@@ -95,7 +95,7 @@
 
 ### Implementation for User Story 4
 
-- [X] T015 [US4] Modify `client/src/pages/ArtistDashboardPage.tsx`: in the track list rendering section, add a conditional badge for tracks where `pricingType === 'FREE'`; the badge should read "Ad-supported" and include a tooltip (using the existing shadcn/ui Tooltip or a `title` attribute) with text: "This track is free for fans. Ad revenue helps sustain the platform."
+- [x] T015 [US4] Modify `client/src/pages/ArtistDashboardPage.tsx`: in the track list rendering section, add a conditional badge for tracks where `pricingType === 'FREE'`; the badge should read "Ad-supported" and include a tooltip (using the existing shadcn/ui Tooltip or a `title` attribute) with text: "This track is free for fans. Ad revenue helps sustain the platform."
 
 **Checkpoint (US4)**: Every free track row in the artist dashboard shows the "Ad-supported" label. Paid and pay-what-you-want tracks show no label.
 
@@ -105,11 +105,11 @@
 
 **Purpose**: Auto ads enablement, build validation, and layout verification.
 
-- [X] T016 [P] Enable Google Auto ads by confirming the AdSense `<script>` tag in `client/index.html` has `data-ad-client` attribute set via `%VITE_ADSENSE_PUBLISHER_ID%` — Auto ads are activated automatically by the AdSense script when the publisher account has Auto ads enabled in the AdSense dashboard (no additional code change required; document this in `client/.env.example`)
-- [X] T017 [P] Verify all `GoogleAdUnit` usages have `max-w-full` or equivalent Tailwind class on their container to prevent horizontal overflow at narrow viewports; check `client/src/pages/DiscoverPage.tsx`, `TrackPage.tsx`, `ArtistProfilePage.tsx`, and `client/src/components/ads/AdGateModal.tsx`
-- [X] T018 [P] Run `npm --prefix api run build` and confirm zero TypeScript errors
-- [X] T019 [P] Run `npm --prefix client run build` and confirm zero TypeScript/Vite build errors
-- [X] T020 Run the full validation checklist from `specs/026-google-ads-integration/quickstart.md` steps 1–7 and mark each step pass/fail
+- [x] T016 [P] Enable Google Auto ads by confirming the AdSense `<script>` tag in `client/index.html` has `data-ad-client` attribute set via `%VITE_ADSENSE_PUBLISHER_ID%` — Auto ads are activated automatically by the AdSense script when the publisher account has Auto ads enabled in the AdSense dashboard (no additional code change required; document this in `client/.env.example`)
+- [x] T017 [P] Verify all `GoogleAdUnit` usages have `max-w-full` or equivalent Tailwind class on their container to prevent horizontal overflow at narrow viewports; check `client/src/pages/DiscoverPage.tsx`, `TrackPage.tsx`, `ArtistProfilePage.tsx`, and `client/src/components/ads/AdGateModal.tsx`
+- [x] T018 [P] Run `npm --prefix api run build` and confirm zero TypeScript errors
+- [x] T019 [P] Run `npm --prefix client run build` and confirm zero TypeScript/Vite build errors
+- [x] T020 Run the full validation checklist from `specs/026-google-ads-integration/quickstart.md` steps 1–7 and mark each step pass/fail
 
 ---
 
@@ -142,12 +142,12 @@ Phase 7 (Polish)       ─── depends on all desired stories complete
 
 ### Parallel Opportunities per Story
 
-| Story | Parallel Tasks |
-|-------|---------------|
-| US2 | T011, T012, T013 — all different files, no shared dependencies |
-| US3 | T014 — standalone admin page modification |
-| US4 | T015 — standalone dashboard page modification |
-| Polish | T016, T017, T018, T019 — all independent |
+| Story  | Parallel Tasks                                                 |
+| ------ | -------------------------------------------------------------- |
+| US2    | T011, T012, T013 — all different files, no shared dependencies |
+| US3    | T014 — standalone admin page modification                      |
+| US4    | T015 — standalone dashboard page modification                  |
+| Polish | T016, T017, T018, T019 — all independent                       |
 
 ---
 

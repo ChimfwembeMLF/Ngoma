@@ -7,6 +7,7 @@ import { TrackPage } from './pages/TrackPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { ArtistDashboardPage } from './pages/ArtistDashboardPage';
 import { ArtistProfilePage } from './pages/ArtistProfilePage';
+import { PublicArtistProfilePage } from './pages/PublicArtistProfilePage';
 import { ArtistSettingsPage } from './pages/ArtistSettingsPage';
 import { TipArtistPage } from './pages/TipArtistPage';
 import { PlaylistsPage } from './pages/PlaylistsPage';
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="/privacy" element={<PrivacyPage />} />
           <Route path="/refund" element={<RefundPolicyPage />} />
           <Route path="/tracks/:id" element={<TrackPage />} />
+          <Route path="/artists/:id" element={<PublicArtistProfilePage />} />
           <Route path="/videos/:id" element={<VideoPage />} />
           <Route path="/playlists/share/:slug" element={<PlaylistDetailPage />} />
           <Route path="/playlists/:id" element={<PlaylistDetailPage />} />

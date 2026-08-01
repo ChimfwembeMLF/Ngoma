@@ -179,3 +179,12 @@ Phase 7 (Polish)       ─── depends on all desired stories complete
 - Auto ads (FR-012) require no code beyond the `<script>` tag — Google handles the rest
 - All API routes already use `/api/v1/` prefix — no route changes needed
 - Client env vars prefixed `VITE_ADSENSE_*` — all optional; absent = unit renders null
+
+## Phase 8: Convergence
+
+- [x] T021 Move the `GoogleAdUnit` placement out of the protected `/artist/profile` management page and render the Artist Profile ad on the public artist-profile route/component instead, ensuring no Google ad unit renders in authenticated artist management views per FR-010 and US2 (contradicts)
+
+## Phase 9: Convergence
+
+- [x] T022 Replace placeholder AdSense slot defaults in the production Docker/Compose build with required real `VITE_ADSENSE_SLOT_GATE`, `VITE_ADSENSE_SLOT_DISCOVER`, `VITE_ADSENSE_SLOT_TRACK`, and `VITE_ADSENSE_SLOT_ARTIST` deployment values, while retaining clearly documented placeholders only for local/example configuration, so manual units produce valid AdSense requests per FR-001, FR-002, and FR-006 (partial)
+- [x] T023 Make the AdSense script injection conditional on a configured `VITE_ADSENSE_PUBLISHER_ID` in `client/index.html` or the Vite build configuration, so builds without a publisher ID omit the script while Google ad components continue to render `null` without errors per the plan’s script-injection decision and FR-006 (partial)

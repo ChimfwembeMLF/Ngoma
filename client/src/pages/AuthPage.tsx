@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { usePaymentOptions } from '@/hooks/usePayments';
+import { initiateTekremLogin } from '@/lib/auth';
 import { AppShell } from '@/components/layout/AppShell';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -230,6 +231,35 @@ export function AuthPage() {
       <Card className="w-full p-6 shadow-lg shadow-black/30">
         <h1 className="text-[22px] font-medium text-foreground">Ngoma</h1>
         <p className="mb-6 mt-1 text-sm text-muted-foreground">The Heartbeat of African Music</p>
+
+        <div className="mb-6 space-y-3">
+          <button
+            type="button"
+            onClick={() => initiateTekremLogin('/artist/dashboard')}
+            className="w-full py-3 px-4 rounded-xl font-bold text-sm bg-slate-900 hover:bg-slate-800 text-slate-100 shadow-md transition-all flex items-center justify-center space-x-3 border border-slate-700 hover:border-slate-600 cursor-pointer"
+          >
+            <span className="flex-shrink-0">
+              <svg className="w-5 h-5 rounded-full shadow-sm" viewBox="0 0 226.56 226.56" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="tekremGrad" gradientUnits="userSpaceOnUse" x1="0.01" y1="113.28" x2="226.56" y2="113.28">
+                    <stop offset="0" stopColor="#CA7486" />
+                    <stop offset="1" stopColor="#515AA6" />
+                  </linearGradient>
+                </defs>
+                <path fill="url(#tekremGrad)" d="M113.28 0c62.56,0 113.28,50.72 113.28,113.28 0,62.56 -50.72,113.28 -113.28,113.28 -62.56,0 -113.28,-50.72 -113.28,-113.28 0,-62.56 50.72,-113.28 113.28,-113.28z" />
+                <path fill="#FEFEFE" d="M175.75 107.23l25.81 -37.47c-47.89,-1.15 -86.07,-10.67 -114.21,27.26 -3.01,4.06 -5.72,7.77 -8.11,11.18 -22.86,32.58 -17.69,38.64 12.25,78.14 3.78,-7.78 5.58,-23.94 9.27,-33.1 4.2,-10.43 8.39,-15.88 15.36,-24.78 17.04,-21.77 23.69,-21.23 59.62,-21.23z" />
+                <path fill="#FEFEFE" d="M25.01 70.28c4.37,9.19 14.97,23.36 21.22,32.5 4.53,6.63 6.41,4.68 28.88,3.62 16.99,-30.57 36.43,-33.75 41.33,-36.62l-91.43 0.5z" />
+              </svg>
+            </span>
+            <span className="tracking-wide font-extrabold">Continue with Tekrem ID</span>
+          </button>
+          
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-border/60"></div>
+            <span className="flex-shrink mx-3 text-[11px] text-muted-foreground uppercase tracking-wider font-bold">Or sign in with email</span>
+            <div className="flex-grow border-t border-border/60"></div>
+          </div>
+        </div>
 
         <div className="mb-6 flex gap-2">
           <button

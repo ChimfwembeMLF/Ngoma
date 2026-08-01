@@ -8,6 +8,9 @@ import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UserModule } from '../user/user.module';
 import { Artist } from '../artists/entities/artist.entity';
+import { TekremOidcService } from './tekrem-oidc.service';
+import { TekremOidcController } from './tekrem-oidc.controller';
+import { TekremAccountLink } from '../marketing-integration/entities/tekrem-account-link.entity';
 
 @Module({
   imports: [
@@ -21,10 +24,10 @@ import { Artist } from '../artists/entities/artist.entity';
         signOptions: { expiresIn: '24h' },
       }),
     }),
-    TypeOrmModule.forFeature([Artist]),
+    TypeOrmModule.forFeature([Artist, TekremAccountLink]),
   ],
-  controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  controllers: [AuthController, TekremOidcController],
+  providers: [AuthService, JwtStrategy, TekremOidcService],
+  exports: [AuthService, JwtModule, TekremOidcService],
 })
 export class AuthModule {}

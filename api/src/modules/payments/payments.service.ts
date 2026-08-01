@@ -29,6 +29,7 @@ import { Tip } from './entities/tip.entity';
 import { Artist } from '../artists/entities/artist.entity';
 import { DownloadAccess } from '../tracks/entities/download-access.entity';
 import { Track, PricingType } from '../tracks/entities/track.entity';
+import { SmartLinkAttribution } from '../marketing-integration/entities/smart-link-attribution.entity';
 import { InitiatePaymentDto } from './dto/initiate-payment.dto';
 import { InitiateTipDto } from './dto/initiate-tip.dto';
 import {
@@ -66,6 +67,8 @@ export class PaymentsService {
     private readonly accessRepo: Repository<DownloadAccess>,
     @InjectRepository(Track)
     private readonly tracksRepo: Repository<Track>,
+    @InjectRepository(SmartLinkAttribution)
+    private readonly attributionsRepo: Repository<SmartLinkAttribution>,
     private readonly config: ConfigService,
   ) {}
 
@@ -488,6 +491,18 @@ export class PaymentsService {
       await this.completeTrackDownload(payment);
     } else if (payment.purpose === PaymentPurpose.TIP) {
       await this.completeTip(payment);
+    }
+    try {
+      if (payment.itemId) {
+        const attr = await this.attributionsRepo.findOne({ where: { releaseId: payment.itemId, converted: false } });
+        if (attr) {
+          attr.converted = true;
+          attr.conversionAmount = Number(payment.amount);
+          await this.attributionsRepo.save(attr);
+        }
+      }
+    } catch (err) {
+      this.logger.warn(`Failed to log conversion attribution for payment ${payment.id}`);
     }
   }
 

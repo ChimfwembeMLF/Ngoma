@@ -24,6 +24,7 @@ import { PlaylistsModule } from './modules/playlists/playlists.module';
 import { PayoutsModule } from './modules/payouts/payouts.module';
 import { VideosModule } from './modules/videos/videos.module';
 import { AdsModule } from './modules/ads/ads.module';
+import { MarketingIntegrationModule } from './modules/marketing-integration/marketing-integration.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { AdsModule } from './modules/ads/ads.module';
     PayoutsModule,
     VideosModule,
     AdsModule,
+    MarketingIntegrationModule,
   ],
   providers: [
     { provide: APP_GUARD, useClass: AppThrottlerGuard },

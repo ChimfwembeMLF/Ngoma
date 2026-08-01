@@ -7,13 +7,14 @@ import { DownloadAccess } from '../tracks/entities/download-access.entity';
 import { Track } from '../tracks/entities/track.entity';
 import { Artist } from '../artists/entities/artist.entity';
 import { User } from '../user/entities/user.entity';
+import { SmartLinkAttribution } from '../marketing-integration/entities/smart-link-attribution.entity';
 import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 import { TipsController } from './tips.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Payment, Earnings, Tip, DownloadAccess, Track, Artist, User]),
+    TypeOrmModule.forFeature([Payment, Earnings, Tip, DownloadAccess, Track, Artist, User, SmartLinkAttribution]),
   ],
   providers: [PaymentsService],
   controllers: [PaymentsController, TipsController],

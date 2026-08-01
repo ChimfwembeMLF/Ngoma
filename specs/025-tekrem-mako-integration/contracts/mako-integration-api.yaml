@@ -1,0 +1,220 @@
+openapi: 3.0.3
+info:
+  title: Ngoma Marketing Integration API (Tekrem & Mako)
+  description: REST API contracts for SSO authentication with Tekrem ID, one-click music promotion with Mako, smart link conversion tracking, and unified ROI analytics.
+  version: 1.0.0
+paths:
+  /api/v1/auth/tekrem/callback:
+    post:
+      summary: Handle OpenID Connect callback from Tekrem Auth
+      tags:
+        - Authentication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+                - redirectUri
+                - codeVerifier
+              properties:
+                code:
+                  type: string
+                  description: OIDC authorization code issued by Tekrem Auth
+                redirectUri:
+                  type: string
+                codeVerifier:
+                  type: string
+                  description: PKCE code verifier matching initial challenge
+      responses:
+        '200':
+          description: Successfully authenticated and issued Ngoma session token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+                  expiresIn:
+                    type: integer
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      tekremSub:
+                        type: string
+                      email:
+                        type: string
+                      makoWorkspaceId:
+                        type: string
+
+  /api/v1/marketing/promotions/prefill:
+    post:
+      summary: Initialize one-click campaign promotion payload for Mako
+      tags:
+        - Marketing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - releaseId
+                - targetGenre
+              properties:
+                releaseId:
+                  type: string
+                  format: uuid
+                targetGenre:
+                  type: string
+                customCaption:
+                  type: string
+      responses:
+        '201':
+          description: Campaign prefilled and ready for Mako deployment
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  campaignId:
+                    type: string
+                    format: uuid
+                  makoRedirectUrl:
+                    type: string
+                    description: Authenticated deep link to open Mako social campaign builder
+                  smartLinkSlug:
+                    type: string
+
+  /api/v1/marketing/smart-links:
+    post:
+      summary: Generate a traceable promotional smart link for a music release
+      tags:
+        - Marketing
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - releaseId
+                - campaignId
+              properties:
+                releaseId:
+                  type: string
+                  format: uuid
+                campaignId:
+                  type: string
+                  format: uuid
+                customSlug:
+                  type: string
+      responses:
+        '201':
+          description: Smart link created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  slug:
+                    type: string
+                  fullUrl:
+                    type: string
+
+  /api/v1/marketing/analytics/roi:
+    get:
+      summary: Retrieve consolidated ROI performance report per campaign or release
+      tags:
+        - Analytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: releaseId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: campaignId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Consolidated ROI performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalImpressions:
+                    type: integer
+                  totalClicks:
+                    type: integer
+                  totalPurchases:
+                    type: integer
+                  grossRevenue:
+                    type: number
+                    format: double
+                  adExpenditure:
+                    type: number
+                    format: double
+                  netRoiPercentage:
+                    type: number
+                    format: double
+
+  /api/v1/marketing/fans/segments:
+    get:
+      summary: Retrieve organized Fan CRM audience intelligence segments
+      tags:
+        - Fan CRM
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: genre
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: tier
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CASUAL, FAN, VIP]
+      responses:
+        '200':
+          description: List of targeted fan profiles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                    preferredGenre:
+                      type: string
+                    totalSpent:
+                      type: number
+                    supporterTier:
+                      type: string
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

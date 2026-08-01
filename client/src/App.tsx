@@ -30,6 +30,11 @@ import { ThemeProvider } from './providers/ThemeProvider';
 import { ColorModeProvider } from './providers/ColorModeProvider';
 import { BrandingProvider } from './providers/BrandingProvider';
 import { PlayerProvider } from './providers/PlayerProvider';
+import { TekremCallbackPage } from './pages/auth/TekremCallbackPage';
+import { MarketingLayout } from './pages/marketing/MarketingLayout';
+import { PromotionDashboardPage } from './pages/marketing/PromotionDashboardPage';
+import { RoiAnalyticsPage } from './pages/marketing/RoiAnalyticsPage';
+import { FanCrmPage } from './pages/marketing/FanCrmPage';
 
 const queryClient = new QueryClient();
 
@@ -44,6 +49,21 @@ export default function App() {
                 <Routes>
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/auth/callback" element={<TekremCallbackPage />} />
+          <Route
+            path="/marketing"
+            element={
+              <ProtectedRoute>
+                <MarketingLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="promotions" replace />} />
+            <Route path="promotions" element={<PromotionDashboardPage />} />
+            <Route path="analytics/roi" element={<RoiAnalyticsPage />} />
+            <Route path="fans/segments" element={<FanCrmPage />} />
+            <Route path="crm" element={<FanCrmPage />} />
+          </Route>
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />

@@ -22,6 +22,12 @@ services:
       dockerfile: client/Dockerfile
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-}
+        # AdSense publisher IDs are public and must be available at Vite build time.
+        - VITE_ADSENSE_PUBLISHER_ID=${VITE_ADSENSE_PUBLISHER_ID:-ca-pub-6221660864872022}
+        - VITE_ADSENSE_SLOT_GATE=${VITE_ADSENSE_SLOT_GATE:-1111111111}
+        - VITE_ADSENSE_SLOT_DISCOVER=${VITE_ADSENSE_SLOT_DISCOVER:-2222222222}
+        - VITE_ADSENSE_SLOT_TRACK=${VITE_ADSENSE_SLOT_TRACK:-3333333333}
+        - VITE_ADSENSE_SLOT_ARTIST=${VITE_ADSENSE_SLOT_ARTIST:-4444444444}
     networks:
       - dokploy-network
     restart: unless-stopped

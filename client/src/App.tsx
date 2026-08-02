@@ -51,6 +51,7 @@ export default function App() {
           <Route path="/" element={<Navigate to="/discover" replace />} />
           <Route path="/auth" element={<AuthPage />} />
           <Route path="/auth/callback" element={<TekremCallbackPage />} />
+          <Route path="/auth/tekrem/callback" element={<TekremCallbackPage />} />
           <Route
             path="/marketing"
             element={

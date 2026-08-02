@@ -21,7 +21,7 @@ export const TekremCallbackPage: React.FC = () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             code,
-            redirectUri: import.meta.env.VITE_TEKREM_REDIRECT_URI || 'https://tekreminnovations.com/auth/tekrem/callback',
+            redirectUri: import.meta.env.VITE_TEKREM_REDIRECT_URI || 'https://ngoma.tekreminnovations.com/auth/tekrem/callback',
             codeVerifier,
           }),
         });

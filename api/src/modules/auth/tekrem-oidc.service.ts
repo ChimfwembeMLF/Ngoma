@@ -60,7 +60,7 @@ export class TekremOidcService {
         new URLSearchParams({
           grant_type: 'authorization_code',
           code: dto.code,
-          redirect_uri: dto.redirectUri || this.config.get<string>('TEKREM_REDIRECT_URI', 'https://tekreminnovations.com/auth/tekrem/callback'),
+          redirect_uri: dto.redirectUri || this.config.get<string>('TEKREM_REDIRECT_URI', 'https://ngoma.tekreminnovations.com/auth/tekrem/callback'),
           client_id: this.clientId,
           client_secret: this.clientSecret,
           ...(dto.codeVerifier ? { code_verifier: dto.codeVerifier } : {}),

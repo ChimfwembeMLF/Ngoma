@@ -188,3 +188,7 @@ Phase 7 (Polish)       ─── depends on all desired stories complete
 
 - [x] T022 Replace placeholder AdSense slot defaults in the production Docker/Compose build with required real `VITE_ADSENSE_SLOT_GATE`, `VITE_ADSENSE_SLOT_DISCOVER`, `VITE_ADSENSE_SLOT_TRACK`, and `VITE_ADSENSE_SLOT_ARTIST` deployment values, while retaining clearly documented placeholders only for local/example configuration, so manual units produce valid AdSense requests per FR-001, FR-002, and FR-006 (partial)
 - [x] T023 Make the AdSense script injection conditional on a configured `VITE_ADSENSE_PUBLISHER_ID` in `client/index.html` or the Vite build configuration, so builds without a publisher ID omit the script while Google ad components continue to render `null` without errors per the plan’s script-injection decision and FR-006 (partial)
+
+## Phase 10: Convergence
+
+- [x] T024 Update `client/src/pages/AdminAdsPage.tsx` to include a clear Google AdSense setup guide for the admin panel that documents both `VITE_ADSENSE_PUBLISHER_ID` and the required manual placement slot IDs: `VITE_ADSENSE_SLOT_GATE`, `VITE_ADSENSE_SLOT_DISCOVER`, `VITE_ADSENSE_SLOT_TRACK`, and `VITE_ADSENSE_SLOT_ARTIST` (US3/AC3, partial)

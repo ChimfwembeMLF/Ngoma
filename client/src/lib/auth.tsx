@@ -3,7 +3,7 @@ import { getAccessToken, getRefreshToken, setTokens, clearTokens } from './auth-
 
 const TEKREM_AUTH_URL = import.meta.env.VITE_TEKREM_AUTH_URL || import.meta.env.VITE_TEKREM_OIDC_ISSUER || 'https://auth.tekreminnovations.com';
 const TEKREM_CLIENT_ID = import.meta.env.VITE_TEKREM_CLIENT_ID || '182e05672cc44802a9e7f17c2ce46b58';
-const TEKREM_REDIRECT_URI = import.meta.env.VITE_TEKREM_REDIRECT_URI || 'https://tekreminnovations.com/auth/tekrem/callback';
+const TEKREM_REDIRECT_URI = import.meta.env.VITE_TEKREM_REDIRECT_URI || 'https://ngoma.tekreminnovations.com/auth/tekrem/callback';
 
 function generateCodeVerifier(length = 64): string {
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';

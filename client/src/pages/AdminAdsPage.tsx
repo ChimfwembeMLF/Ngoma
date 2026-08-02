@@ -203,6 +203,19 @@ export function AdminAdsPage() {
                 Set VITE_ADSENSE_PUBLISHER_ID in client/.env and restart the dev server
               </p>
             )}
+            <div className="rounded-md border border-border bg-slate-50 p-4 text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">Required AdSense env vars</p>
+              <ul className="mt-2 list-inside list-disc space-y-1">
+                <li><code>VITE_ADSENSE_PUBLISHER_ID</code> — Google AdSense publisher ID</li>
+                <li><code>VITE_ADSENSE_SLOT_GATE</code> — ad-gate modal slot</li>
+                <li><code>VITE_ADSENSE_SLOT_DISCOVER</code> — Discover page slot</li>
+                <li><code>VITE_ADSENSE_SLOT_TRACK</code> — Track detail page slot</li>
+                <li><code>VITE_ADSENSE_SLOT_ARTIST</code> — Public artist profile slot</li>
+              </ul>
+              <p className="mt-2 text-xs text-muted-foreground">
+                When Google Ads is enabled, manual ad placements only render if the corresponding slot IDs are configured.
+              </p>
+            </div>
           </div>
         </Card>
 

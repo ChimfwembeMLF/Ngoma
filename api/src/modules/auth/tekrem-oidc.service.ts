@@ -122,14 +122,23 @@ export class TekremOidcService {
           );
           artistId = artist.id;
         }
+      } else {
+        link = await this.accountLinksRepo.findOne({ where: { userId: user.id } });
       }
 
-      link = this.accountLinksRepo.create({
-        userId: user.id,
-        tekremSub: oidcClaims.sub,
-        email: oidcClaims.email,
-        makoWorkspaceId: oidcClaims.workspace_id || `ws_${user.id.substring(0, 8)}`,
-      });
+      if (!link) {
+        link = this.accountLinksRepo.create({
+          userId: user.id,
+          tekremSub: oidcClaims.sub,
+          email: oidcClaims.email,
+          makoWorkspaceId: oidcClaims.workspace_id || `ws_${user.id.substring(0, 8)}`,
+        });
+      } else {
+        link.tekremSub = oidcClaims.sub;
+        link.email = oidcClaims.email;
+        link.makoWorkspaceId = oidcClaims.workspace_id || link.makoWorkspaceId || `ws_${user.id.substring(0, 8)}`;
+      }
+
       await this.accountLinksRepo.save(link);
     }
 
